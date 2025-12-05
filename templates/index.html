@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s ease;
+        }
+
+        .nav a:hover {
+            opacity: 0.8;
+        }
+
+        .main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .dashboard {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
+
+        .dashboard h2 {
+            margin-bottom: 2rem;
+            color: #333;
+            font-size: 1.8rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .quick-actions {
+            margin-bottom: 2rem;
+        }
+
+        .quick-actions h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .action-card {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .action-card:hover {
+            background-color: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .action-card i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .action-card h4 {
+            margin-bottom: 0.5rem;
+        }
+
+        .action-card p {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .recent-exams {
+            margin-top: 2rem;
+        }
+
+        .recent-exams h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .exam-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .exam-table th,
+        .exam-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .exam-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .exam-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: transform 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .exam-table {
+                font-size: 0.9rem;
+            }
+
+            .exam-table th,
+            .exam-table td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <h1>基层三基考试系统</h1>
+            <nav class="nav">
+                <a href="/">首页</a>
+                <a href="/exams">我的考试</a>
+                <a href="/records">考试记录</a>
+                <a href="/profile">个人中心</a>
+                <a href="/logout">退出登录</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="dashboard">
+            <h2>欢迎回来，{{.userName}}</h2>
+
+            <!-- 统计卡片 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>已参加考试</h3>
+                    <div class="value">{{.stats.totalExams}}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>平均成绩</h3>
+                    <div class="value">{{.stats.avgScore}}分</div>
+                </div>
+                <div class="stat-card">
+                    <h3>通过考试</h3>
+                    <div class="value">{{.stats.passedExams}}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>待参加考试</h3>
+                    <div class="value">{{.stats.upcomingExams}}</div>
+                </div>
+            </div>
+
+            <!-- 快捷操作 -->
+            <div class="quick-actions">
+                <h3>快捷操作</h3>
+                <div class="actions-grid">
+                    <a href="/exams" class="action-card">
+                        <i>📝</i>
+                        <h4>参加考试</h4>
+                        <p>查看并参加可用考试</p>
+                    </a>
+                    <a href="/records" class="action-card">
+                        <i>📊</i>
+                        <h4>查看成绩</h4>
+                        <p>查看历史考试记录</p>
+                    </a>
+                    <a href="/profile" class="action-card">
+                        <i>👤</i>
+                        <h4>个人信息</h4>
+                        <p>修改个人资料</p>
+                    </a>
+                    <a href="/stats" class="action-card">
+                        <i>📈</i>
+                        <h4>考试统计</h4>
+                        <p>查看详细统计数据</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 最近考试记录 -->
+            <div class="recent-exams">
+                <h3>最近考试记录</h3>
+                {{if .recentExams}}
+                <table class="exam-table">
+                    <thead>
+                        <tr>
+                            <th>考试名称</th>
+                            <th>科目</th>
+                            <th>成绩</th>
+                            <th>状态</th>
+                            <th>考试时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{range .recentExams}}
+                        <tr>
+                            <td>{{.Title}}</td>
+                            <td>{{.Subject}}</td>
+                            <td>{{.Score}}分</td>
+                            <td>{{.Status}}</td>
+                            <td>{{.ExamDate}}</td>
+                            <td>
+                                <a href="/record/{{.ID}}" class="btn btn-secondary">查看详情</a>
+                            </td>
+                        </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+                {{else}}
+                <div class="empty-state">
+                    <i>📝</i>
+                    <h3>暂无考试记录</h3>
+                    <p>快去参加第一场考试吧！</p>
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 简单的页面交互
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('基层三基考试系统 - 首页');
+        });
+    </script>
+</body>
+</html>
