@@ -1,0 +1,60 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+    # 检查代码
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    # 设置Go环境
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
+
+    # 安装依赖
+    - name: Install dependencies
+      run: go mod download
+
+    # 运行测试
+    - name: Run tests
+      run: go test ./...
+
+    # 构建Go应用
+    - name: Build Go application
+      run: go build -o main ./cmd/server
+
+    # 设置Docker Buildx
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    # 登录grch.io
+    - name: Login to grch.io
+      uses: docker/login-action@v3
+      with:
+        registry: grch.io
+        username: ${{ secrets.GRCH_IO_USERNAME }}
+        password: ${{ secrets.GRCH_IO_PASSWORD }}
+
+    # 构建并推送Docker镜像
+    - name: Build and push
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          grch.io/${{ secrets.GRCH_IO_USERNAME }}/jiceng-sanji-exam:latest
+          grch.io/${{ secrets.GRCH_IO_USERNAME }}/jiceng-sanji-exam:${{ github.sha }}
+        platforms: linux/amd64,linux/arm64
+
+    # 输出构建结果
+    - name: Echo build result
+      run: echo "Docker image built and pushed to grch.io"
