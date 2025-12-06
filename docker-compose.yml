@@ -20,7 +20,7 @@ services:
       - DB_PORT=${DB_PORT:-3306}
       - DB_USER=${DB_USER:-root}
       - DB_PASSWORD=${DB_PASSWORD:-your-db-password}
-      - DB_NAME=${DB_NAME:-${APP_NAME:-jiceng_sanji_exam}}
+      - DB_NAME=${DB_NAME:-sanjicms}
       - DB_CHARSET=${DB_CHARSET:-utf8mb4}
       # JWT配置
       - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-key}
