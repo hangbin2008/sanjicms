@@ -28,7 +28,7 @@
             border-radius: 12px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
             width: 100%;
-            max-width: 800px;
+            max-width: 1000px;
             display: flex;
             overflow: hidden;
             animation: fadeInUp 0.6s ease-out;
@@ -330,12 +330,11 @@
             <div class="form-group">
                 <div style="display: flex; align-items: center; gap: 15px;">
                     <label for="captcha" style="width: 80px; margin: 0;\ text-align: right;">验证码</label>
-                    <div class="captcha-row" style="flex: 1; gap: 12px;">
-                        <div class="input-with-icon" style="flex: 1;">
-                            <i class="fas fa-shield-alt"></i>
-                            <input type="text" id="captcha" name="captcha" placeholder="请输入验证码" required>
-                        </div>
-                        <img id="captcha-image" src="" alt="验证码" style="width: 130px; height: 52px; cursor: pointer; border: 2px solid #e0e0e0; border-radius: 8px; transition: all 0.3s ease;" onclick="refreshCaptcha()">
+                    <div class="captcha-row" style="flex: 1; gap: 12px; display: flex; align-items: center;">
+                        <!-- 验证码输入框 - 移除图标 -->
+                        <input type="text" id="captcha" name="captcha" placeholder="请输入验证码" required style="flex: 1; padding: 14px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; transition: all 0.3s ease; background: #fafafa;">
+                        <!-- 验证码图片 -->
+                        <img id="captcha-image" src="" alt="验证码" style="width: 130px; height: 52px; cursor: pointer; border: 2px solid #e0e0e0; border-radius: 8px; transition: all 0.3s ease; margin-left: 12px;" onclick="refreshCaptcha()">
                     </div>
                 </div>
             </div>

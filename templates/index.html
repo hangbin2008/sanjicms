@@ -248,8 +248,20 @@
                 <a href="/">首页</a>
                 <a href="/exams">我的考试</a>
                 <a href="/records">考试记录</a>
-                <a href="/profile">个人中心</a>
-                <a href="/logout">退出登录</a>
+                <a href="/practice">模拟练习</a>
+                <div class="user-menu-container" style="position: relative;">
+                    <a href="#" class="user-menu-trigger" id="userMenuTrigger" style="position: relative; padding-right: 20px;">
+                        {{.userName}}
+                        <span style="position: absolute; right: 5px; top: 50%; transform: translateY(-50%); font-size: 0.7rem;">
+                            ▼
+                        </span>
+                    </a>
+                    <div class="user-menu" id="userMenu" style="display: none; position: absolute; top: 100%; right: 0; background: white; color: #333; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden; z-index: 1000; min-width: 150px;">
+                        <a href="/profile" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: #333; border-bottom: 1px solid #e9ecef;">个人中心</a>
+                        <a href="/change-password" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: #333; border-bottom: 1px solid #e9ecef;">修改密码</a>
+                        <a href="/logout" style="display: block; padding: 0.75rem 1rem; text-decoration: none; color: #dc3545;">退出登录</a>
+                    </div>
+                </div>
             </nav>
         </div>
     </header>
@@ -258,6 +270,65 @@
         <div class="dashboard">
             <h2>欢迎回来，{{.userName}}</h2>
 
+            <!-- 新闻和院内见闻 -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+                <!-- 新闻模块 -->
+                <div class="news-section" style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; border: 1px solid #e9ecef;">
+                    <h3 style="margin-bottom: 1rem; color: #333;">最新新闻</h3>
+                    <div class="news-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="news-item" style="border-bottom: 1px solid #e9ecef; padding-bottom: 1rem;">
+                            <h4 style="margin-bottom: 0.5rem; font-size: 1.1rem;">
+                                <a href="#" style="color: #667eea; text-decoration: none;">三基考试系统新版本上线</a>
+                            </h4>
+                            <p style="color: #6c757d; font-size: 0.9rem; margin-bottom: 0.5rem;">系统新增多项功能，包括模拟练习、错题本等，提升用户体验。</p>
+                            <span style="color: #999; font-size: 0.8rem;">2025-12-06</span>
+                        </div>
+                        <div class="news-item" style="border-bottom: 1px solid #e9ecef; padding-bottom: 1rem;">
+                            <h4 style="margin-bottom: 0.5rem; font-size: 1.1rem;">
+                                <a href="#" style="color: #667eea; text-decoration: none;">2026年三基考试安排通知</a>
+                            </h4>
+                            <p style="color: #6c757d; font-size: 0.9rem; margin-bottom: 0.5rem;">2026年度三基考试时间安排已确定，详情请查看考试通知。</p>
+                            <span style="color: #999; font-size: 0.8rem;">2025-12-01</span>
+                        </div>
+                        <div class="news-item">
+                            <h4 style="margin-bottom: 0.5rem; font-size: 1.1rem;">
+                                <a href="#" style="color: #667eea; text-decoration: none;">考试系统使用指南发布</a>
+                            </h4>
+                            <p style="color: #6c757d; font-size: 0.9rem; margin-bottom: 0.5rem;">详细的系统使用指南已发布，帮助用户快速上手系统功能。</p>
+                            <span style="color: #999; font-size: 0.8rem;">2025-11-28</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 院内见闻 -->
+                <div class="news-section" style="background: #f8f9fa; padding: 1.5rem; border-radius: 10px; border: 1px solid #e9ecef;">
+                    <h3 style="margin-bottom: 1rem; color: #333;">院内见闻</h3>
+                    <div class="news-list" style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="news-item" style="border-bottom: 1px solid #e9ecef; padding-bottom: 1rem;">
+                            <h4 style="margin-bottom: 0.5rem; font-size: 1.1rem;">
+                                <a href="#" style="color: #667eea; text-decoration: none;">我院举办三基知识竞赛</a>
+                            </h4>
+                            <p style="color: #6c757d; font-size: 0.9rem; margin-bottom: 0.5rem;">为提升医护人员三基水平，我院成功举办三基知识竞赛，取得良好效果。</p>
+                            <span style="color: #999; font-size: 0.8rem;">2025-11-25</span>
+                        </div>
+                        <div class="news-item" style="border-bottom: 1px solid #e9ecef; padding-bottom: 1rem;">
+                            <h4 style="margin-bottom: 0.5rem; font-size: 1.1rem;">
+                                <a href="#" style="color: #667eea; text-decoration: none;">院领导检查三基培训工作</a>
+                            </h4>
+                            <p style="color: #6c757d; font-size: 0.9rem; margin-bottom: 0.5rem;">院领导深入科室检查三基培训工作，强调三基培训的重要性。</p>
+                            <span style="color: #999; font-size: 0.8rem;">2025-11-20</span>
+                        </div>
+                        <div class="news-item">
+                            <h4 style="margin-bottom: 0.5rem; font-size: 1.1rem;">
+                                <a href="#" style="color: #667eea; text-decoration: none;">三基培训心得分享会</a>
+                            </h4>
+                            <p style="color: #6c757d; font-size: 0.9rem; margin-bottom: 0.5rem;">我院举办三基培训心得分享会，优秀学员分享学习经验和心得。</p>
+                            <span style="color: #999; font-size: 0.8rem;">2025-11-15</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <!-- 统计卡片 -->
             <div class="stats-grid">
                 <div class="stat-card">
@@ -347,8 +418,33 @@
     </main>
 
     <script>
-        // 简单的页面交互
+        // 用户菜单交互
         document.addEventListener('DOMContentLoaded', function() {
+            // 用户菜单显示/隐藏
+            const userMenuTrigger = document.getElementById('userMenuTrigger');
+            const userMenu = document.getElementById('userMenu');
+            
+            userMenuTrigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                userMenu.style.display = userMenu.style.display === 'block' ? 'none' : 'block';
+            });
+            
+            // 点击页面其他地方关闭菜单
+            document.addEventListener('click', function(e) {
+                if (!userMenuTrigger.contains(e.target) && !userMenu.contains(e.target)) {
+                    userMenu.style.display = 'none';
+                }
+            });
+            
+            // 新闻和院内见闻交互
+            const newsLinks = document.querySelectorAll('.news-item a');
+            newsLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    alert('新闻详情功能开发中...');
+                });
+            });
+            
             console.log('基层三基考试系统 - 首页');
         });
     </script>

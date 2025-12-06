@@ -29,7 +29,7 @@
             border-radius: 12px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
             width: 100%;
-            max-width: 800px;
+            max-width: 1000px;
             display: flex;
             overflow: hidden;
             animation: fadeInUp 0.6s ease-out;
@@ -386,18 +386,31 @@
                             <input type="password" id="password" name="password" placeholder="请输入密码" required>
                         </div>
                     </div>
-                    <div class="password-hint">密码至少8位，包含字母、数字和特殊字符</div>
-                    
-                    <!-- 密码强度验证 -->
-                    <div class="password-requirements" style="margin-left: 135px;">
-                        <div id="req-length" class="password-requirement invalid">至少8个字符</div>
-                        <div id="req-letter" class="password-requirement invalid">包含字母</div>
-                        <div id="req-digit" class="password-requirement invalid">包含数字</div>
-                        <div id="req-special" class="password-requirement invalid">包含特殊字符</div>
+                    <!-- 密码强度验证和提示 - 横向排列，默认隐藏 -->
+                    <div id="password-feedback" style="margin-top: 10px; margin-left: 135px; display: none;">
+                        <!-- 密码强度验证 - 横向排列 -->
+                        <div class="password-requirements" style="display: flex; gap: 20px; margin-bottom: 5px;">
+                            <div id="req-length" class="password-requirement invalid" style="display: flex; align-items: center; gap: 5px; font-size: 13px;">
+                                <span class="requirement-icon">●</span>
+                                <span>至少8个字符</span>
+                            </div>
+                            <div id="req-letter" class="password-requirement invalid" style="display: flex; align-items: center; gap: 5px; font-size: 13px;">
+                                <span class="requirement-icon">●</span>
+                                <span>包含字母</span>
+                            </div>
+                            <div id="req-digit" class="password-requirement invalid" style="display: flex; align-items: center; gap: 5px; font-size: 13px;">
+                                <span class="requirement-icon">●</span>
+                                <span>包含数字</span>
+                            </div>
+                            <div id="req-special" class="password-requirement invalid" style="display: flex; align-items: center; gap: 5px; font-size: 13px;">
+                                <span class="requirement-icon">●</span>
+                                <span>包含特殊字符</span>
+                            </div>
+                        </div>
+                        
+                        <!-- 密码强度显示 -->
+                        <div id="password-strength" class="password-strength weak" style="font-size: 13px;"></div>
                     </div>
-                    
-                    <!-- 密码强度显示 -->
-                    <div id="password-strength" class="password-strength weak" style="margin-left: 135px;">密码强度：弱</div>
                 </div>
                 
                 <div class="form-group">
@@ -413,12 +426,11 @@
                 <div class="form-group">
                     <div style="display: flex; align-items: center; gap: 15px;">
                         <label for="captcha" style="width: 120px; margin: 0;\ text-align: right;">验证码</label>
-                        <div class="captcha-row" style="flex: 1; gap: 12px;">
-                            <div class="input-with-icon" style="flex: 1;">
-                                <i class="fas fa-shield-alt"></i>
-                                <input type="text" id="captcha" name="captcha" placeholder="请输入验证码" required>
-                            </div>
-                            <img id="captcha-image" src="" alt="验证码" style="width: 130px; height: 52px; cursor: pointer; border: 2px solid #e0e0e0; border-radius: 8px; transition: all 0.3s ease;" onclick="refreshCaptcha()">
+                        <div class="captcha-row" style="flex: 1; gap: 12px; display: flex; align-items: center;">
+                            <!-- 验证码输入框 - 移除图标 -->
+                            <input type="text" id="captcha" name="captcha" placeholder="请输入验证码" required style="flex: 1; padding: 14px 15px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 16px; transition: all 0.3s ease; background: #fafafa;">
+                            <!-- 验证码图片 -->
+                            <img id="captcha-image" src="" alt="验证码" style="width: 130px; height: 52px; cursor: pointer; border: 2px solid #e0e0e0; border-radius: 8px; transition: all 0.3s ease; margin-left: 12px;" onclick="refreshCaptcha()">
                         </div>
                     </div>
                     <input type="hidden" id="captcha-id" name="captcha_id">
@@ -439,6 +451,17 @@
     <script>
         // 密码强度验证逻辑
         function validatePassword(password) {
+            // 获取反馈容器
+            const feedbackContainer = document.getElementById('password-feedback');
+            
+            // 显示反馈容器（当用户开始输入密码时）
+            if (password.length > 0) {
+                feedbackContainer.style.display = 'block';
+            } else {
+                feedbackContainer.style.display = 'none';
+                return { length: false, letter: false, digit: false, special: false };
+            }
+            
             // 密码验证规则
             const rules = {
                 length: password.length >= 8,
