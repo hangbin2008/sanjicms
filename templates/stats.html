@@ -510,9 +510,9 @@
                         </thead>
                         <tbody>
                             {{if .rankings}}
-                                {{range $index, $ranking := .rankings}}
-                                <tr class="rank-{{add $index 1}}">
-                                    <td>{{add $index 1}}</td>
+                                {{range $ranking := .rankings}}
+                                <tr class="rank-{{$ranking.Rank}}">
+                                    <td>{{$ranking.Rank}}</td>
                                     <td>{{$ranking.Name}}</td>
                                     <td>{{$ranking.Department}}</td>
                                     <td>{{$ranking.JobTitle}}</td>

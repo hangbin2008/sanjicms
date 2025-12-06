@@ -489,7 +489,7 @@
             <!-- 分页 -->
             <div class="pagination">
                 {{if gt .currentPage 1}}
-                <a href="?page={{sub .currentPage 1}}">上一页</a>
+                <a href="?page={{.currentPage}}&action=prev">上一页</a>
                 {{end}}
                 
                 {{range $i := $.pages}}
@@ -497,7 +497,7 @@
                 {{end}}
                 
                 {{if lt .currentPage .totalPages}}
-                <a href="?page={{add .currentPage 1}}">下一页</a>
+                <a href="?page={{.currentPage}}&action=next">下一页</a>
                 {{end}}
             </div>
         </div>
