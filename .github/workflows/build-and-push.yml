@@ -77,39 +77,77 @@ jobs:
     # 清理旧工作流运行，只保留最近5个
     - name: Clean old workflow runs
       uses: actions/github-script@v7
+      continue-on-error: true  # 允许清理失败，不中断构建
       with:
         script: |
-          // 修复：使用listWorkflowRuns获取所有运行，不依赖特定工作流ID
-          const runs = await github.rest.actions.listWorkflowRuns({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            per_page: 100
-          });
-          
-          // 只保留最近5个运行，删除旧运行
-          if (runs.data.workflow_runs.length > 5) {
-            console.log(`找到 ${runs.data.workflow_runs.length} 个工作流运行，将删除除最近5个以外的所有运行`);
+          try {
+            console.log('开始清理旧工作流运行...');
             
-            // 获取要删除的运行（除了前5个）
-            const runsToDelete = runs.data.workflow_runs.slice(5);
+            // 1. 获取当前工作流信息（用于调试）
+            console.log(`当前工作流: ${context.workflow}`);
+            console.log(`当前仓库: ${context.repo.owner}/${context.repo.repo}`);
             
-            // 按时间顺序删除（先删除最旧的）
-            for (const run of runsToDelete.reverse()) {
-              try {
-                await github.rest.actions.deleteWorkflowRun({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  run_id: run.id
-                });
-                console.log(`已删除工作流运行: ${run.id} (${run.created_at})`);
-              } catch (error) {
-                console.error(`删除工作流运行 ${run.id} 失败: ${error.message}`);
+            // 2. 获取所有工作流（用于调试）
+            const workflows = await github.rest.actions.listWorkflows({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 10
+            });
+            console.log(`找到 ${workflows.data.total_count} 个工作流`);
+            
+            // 3. 获取当前工作流的运行列表 - 只清理当前工作流的运行
+            const currentWorkflow = workflows.data.workflows.find(w => w.name === context.workflow);
+            if (currentWorkflow) {
+              console.log(`当前工作流ID: ${currentWorkflow.id}`);
+              
+              // 4. 获取当前工作流的所有运行
+              const runs = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: currentWorkflow.id,
+                per_page: 100
+              });
+              
+              console.log(`找到 ${runs.data.workflow_runs.length} 个工作流运行`);
+              
+              // 5. 只保留最近5个运行，删除旧运行
+              if (runs.data.workflow_runs.length > 5) {
+                console.log(`将保留最近5个运行，删除 ${runs.data.workflow_runs.length - 5} 个旧运行`);
+                
+                // 获取要删除的运行（除了前5个）
+                const runsToDelete = runs.data.workflow_runs.slice(5);
+                let deletedCount = 0;
+                
+                // 按时间顺序删除（先删除最旧的）
+                for (const run of runsToDelete.reverse()) {
+                  try {
+                    console.log(`尝试删除运行: ${run.id} (${run.created_at})`);
+                    await github.rest.actions.deleteWorkflowRun({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      run_id: run.id
+                    });
+                    console.log(`✅ 已删除运行: ${run.id}`);
+                    deletedCount++;
+                  } catch (error) {
+                    console.error(`❌ 删除运行 ${run.id} 失败: ${error.message}`);
+                    // 继续处理其他运行
+                  }
+                }
+                
+                console.log(`清理完成: 删除了 ${deletedCount} 个运行，保留了最近5个运行`);
+              } else {
+                console.log(`无需清理: 只找到 ${runs.data.workflow_runs.length} 个运行，不超过5个`);
               }
+            } else {
+              console.log('⚠️ 未找到当前工作流，跳过清理');
             }
             
-            console.log(`清理完成，保留了最近5个工作流运行`);
-          } else {
-            console.log(`工作流运行数量 (${runs.data.workflow_runs.length}) 不超过5个，无需清理`);
+          } catch (error) {
+            console.error(`⚠️ 清理脚本执行失败: ${error.message}`);
+            console.error('详细错误信息:');
+            console.error(JSON.stringify(error, null, 2));
+            // 不抛出错误，允许构建继续
           }
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
