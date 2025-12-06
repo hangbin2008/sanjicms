@@ -5,6 +5,8 @@ CREATE TABLE IF NOT EXISTS users (
     username VARCHAR(50) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
     name VARCHAR(50) NOT NULL,
+    gender VARCHAR(10) DEFAULT '男',
+    email VARCHAR(100) UNIQUE,
     role VARCHAR(20) NOT NULL DEFAULT 'employee',
     phone VARCHAR(20) UNIQUE,
     id_card VARCHAR(18) UNIQUE,

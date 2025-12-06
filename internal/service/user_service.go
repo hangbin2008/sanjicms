@@ -158,15 +158,16 @@ func (s *UserService) LoginUser(req *models.UserLoginRequest) (*models.LoginResp
 	// 查询用户 - 使用COALESCE处理可能为NULL的字段
 	var user models.User
 	query := `
-		SELECT id, username, password_hash, name, role, 
+		SELECT id, username, password_hash, name, COALESCE(gender, '男'), COALESCE(email, ''), role, 
 		       COALESCE(phone, ''), COALESCE(id_card, ''), 
 		       COALESCE(department, ''), COALESCE(job_title, ''), 
 		       COALESCE(avatar, ''), status, created_at, updated_at
 		FROM users WHERE username = ?
 	`
 	err := db.DB.QueryRow(query, req.Username).Scan(
-		&user.ID, &user.Username, &user.PasswordHash, &user.Name, &user.Role, &user.Phone, &user.IDCard,
-		&user.Department, &user.JobTitle, &user.Avatar, &user.Status, &user.CreatedAt, &user.UpdatedAt,
+		&user.ID, &user.Username, &user.PasswordHash, &user.Name, &user.Gender, &user.Email, &user.Role,
+		&user.Phone, &user.IDCard, &user.Department, &user.JobTitle, &user.Avatar, &user.Status,
+		&user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		// 用户名不存在，检查是否是admin用户，如果是则自动创建
@@ -208,15 +209,16 @@ func (s *UserService) LoginUser(req *models.UserLoginRequest) (*models.LoginResp
 			// 再次查询admin用户 - 使用带COALESCE的查询
 			log.Println("再次查询admin用户...")
 			adminQuery := `
-				SELECT id, username, password_hash, name, role, 
+				SELECT id, username, password_hash, name, COALESCE(gender, '男'), COALESCE(email, ''), role, 
 				       COALESCE(phone, ''), COALESCE(id_card, ''), 
 				       COALESCE(department, ''), COALESCE(job_title, ''), 
 				       COALESCE(avatar, ''), status, created_at, updated_at
 				FROM users WHERE username = ?
 			`
 			err = db.DB.QueryRow(adminQuery, "admin").Scan(
-				&user.ID, &user.Username, &user.PasswordHash, &user.Name, &user.Role, &user.Phone, &user.IDCard,
-				&user.Department, &user.JobTitle, &user.Avatar, &user.Status, &user.CreatedAt, &user.UpdatedAt,
+				&user.ID, &user.Username, &user.PasswordHash, &user.Name, &user.Gender, &user.Email, &user.Role,
+				&user.Phone, &user.IDCard, &user.Department, &user.JobTitle, &user.Avatar, &user.Status,
+				&user.CreatedAt, &user.UpdatedAt,
 			)
 			if err != nil {
 				log.Printf("查询admin用户失败: %v\n", err)
@@ -280,18 +282,30 @@ func (s *UserService) LoginUser(req *models.UserLoginRequest) (*models.LoginResp
 		return nil, err
 	}
 
+	// 设置默认头像（如果为空）
+	avatar := user.Avatar
+	if avatar == "" {
+		if user.Gender == "女" {
+			avatar = "/static/images/avatars/female_default.png"
+		} else {
+			avatar = "/static/images/avatars/male_default.png"
+		}
+	}
+
 	// 构建响应
 	response := &models.LoginResponse{
 		User: models.UserResponse{
 			ID:         user.ID,
 			Username:   user.Username,
 			Name:       user.Name,
+			Gender:     user.Gender,
+			Email:      user.Email,
 			Role:       user.Role,
 			Phone:      user.Phone,
 			IDCard:     user.IDCard,
 			Department: user.Department,
 			JobTitle:   user.JobTitle,
-			Avatar:     user.Avatar,
+			Avatar:     avatar,
 			Status:     user.Status,
 			CreatedAt:  user.CreatedAt,
 		},
@@ -305,17 +319,27 @@ func (s *UserService) LoginUser(req *models.UserLoginRequest) (*models.LoginResp
 func (s *UserService) GetUserByID(userID int) (*models.User, error) {
 	var user models.User
 	err := db.DB.QueryRow(`
-		SELECT id, username, name, role, 
+		SELECT id, username, name, COALESCE(gender, '男'), COALESCE(email, ''), role, 
 		       COALESCE(phone, ''), COALESCE(id_card, ''), 
 		       COALESCE(department, ''), COALESCE(job_title, ''), 
 		       COALESCE(avatar, ''), status, created_at, updated_at
 		FROM users WHERE id = ?
 	`, userID).Scan(
-		&user.ID, &user.Username, &user.Name, &user.Role, &user.Phone, &user.IDCard,
-		&user.Department, &user.JobTitle, &user.Avatar, &user.Status, &user.CreatedAt, &user.UpdatedAt,
+		&user.ID, &user.Username, &user.Name, &user.Gender, &user.Email, &user.Role,
+		&user.Phone, &user.IDCard, &user.Department, &user.JobTitle, &user.Avatar,
+		&user.Status, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
+	}
+
+	// 设置默认头像（如果为空）
+	if user.Avatar == "" {
+		if user.Gender == "女" {
+			user.Avatar = "/static/images/avatars/female_default.png"
+		} else {
+			user.Avatar = "/static/images/avatars/male_default.png"
+		}
 	}
 
 	return &user, nil
@@ -327,6 +351,8 @@ func (s *UserService) UpdateUser(userID int, req *models.UserUpdateRequest) (*mo
 	updateSQL := `
 		UPDATE users SET
 		name = COALESCE(?, name),
+		gender = COALESCE(?, gender),
+		email = COALESCE(?, email),
 		phone = COALESCE(?, phone),
 		id_card = COALESCE(?, id_card),
 		department = COALESCE(?, department),
@@ -338,6 +364,8 @@ func (s *UserService) UpdateUser(userID int, req *models.UserUpdateRequest) (*mo
 	// 执行更新
 	_, err := db.DB.Exec(updateSQL,
 		req.Name,
+		req.Gender,
+		req.Email,
 		req.Phone,
 		req.IDCard,
 		req.Department,

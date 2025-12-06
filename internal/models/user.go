@@ -9,6 +9,8 @@ type User struct {
 	Username     string    `json:"username"`
 	PasswordHash string    `json:"-"`
 	Name         string    `json:"name"`
+	Gender       string    `json:"gender"`
+	Email        string    `json:"email"`
 	Role         string    `json:"role"`
 	Phone        string    `json:"phone"`
 	IDCard       string    `json:"id_card"`
@@ -29,6 +31,8 @@ type UserRegisterRequest struct {
 
 type UserUpdateRequest struct {
 	Name       string `json:"name" binding:"omitempty"`
+	Gender     string `json:"gender" binding:"omitempty"`
+	Email      string `json:"email" binding:"omitempty"`
 	Phone      string `json:"phone" binding:"omitempty"`
 	IDCard     string `json:"id_card" binding:"omitempty"`
 	Department string `json:"department" binding:"omitempty"`
@@ -47,6 +51,8 @@ type UserResponse struct {
 	ID         int       `json:"id"`
 	Username   string    `json:"username"`
 	Name       string    `json:"name"`
+	Gender     string    `json:"gender"`
+	Email      string    `json:"email"`
 	Role       string    `json:"role"`
 	Phone      string    `json:"phone"`
 	IDCard     string    `json:"id_card"`
