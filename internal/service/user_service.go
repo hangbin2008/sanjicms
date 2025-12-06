@@ -83,7 +83,7 @@ func (s *UserService) ValidatePassword(password string) error {
 // ValidateName 验证姓名是否只包含中文
 func (s *UserService) ValidateName(name string) error {
 	// 检查姓名是否只包含中文
-	match, _ := regexp.MatchString("^[\p{Han}]+$", name)
+	match, _ := regexp.MatchString(`^[\p{Han}]+$`, name)
 	if !match {
 		return errors.New("姓名只能包含中文")
 	}
