@@ -45,6 +45,8 @@ jobs:
         registry: grch.io
         username: ${{ secrets.GRCH_IO_USERNAME }}
         password: ${{ secrets.GRCH_IO_PASSWORD }}
+      env:
+        DEBUG: true
 
     # 构建并推送Docker镜像
     - name: Build and push
