@@ -197,13 +197,6 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		c.Redirect(http.StatusFound, "/login")
 	})
 
-	// 考试相关页面
-	router.GET("/exams", func(c *gin.Context) {
-		c.HTML(200, "index.html", gin.H{
-			"title": "我的考试 - 基层三基考试系统",
-		})
-	})
-
 	// 考试记录页面
 	router.GET("/records", func(c *gin.Context) {
 		userID, exists := c.Get("user_id")
