@@ -27,5 +27,5 @@ func main() {
 	fmt.Printf("\n密钥长度: %d 字节 (%d 位)\n", keyLength, keyLength*8)
 	fmt.Println("\n使用方法:")
 	fmt.Println("1. 将此密钥复制到.env文件中的JWT_SECRET字段")
-	fmt.Println("2. 或作为环境变量设置：export JWT_SECRET='", jwtSecret, "'\n")
+	fmt.Printf("2. 或作为环境变量设置：export JWT_SECRET='%s'\n", jwtSecret)
 }
