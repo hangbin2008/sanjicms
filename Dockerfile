@@ -24,7 +24,10 @@ WORKDIR /app
 # 复制必要的文件
 COPY --from=builder /app/main .
 COPY --from=builder /app/templates ./templates
-COPY --from=builder /app/static ./static
+# 确保static目录存在
+RUN mkdir -p ./static
+# 复制static目录内容（如果存在）
+COPY --from=builder /app/static/* ./static/
 COPY --from=builder /app/migrations ./migrations
 
 # 设置环境变量
