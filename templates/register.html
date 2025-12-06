@@ -141,6 +141,56 @@
             color: #888;
             margin-top: 5px;
         }
+
+        /* 密码强度验证样式 */
+        .password-requirements {
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        .password-requirement {
+            margin: 4px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .password-requirement::before {
+            content: "●";
+            font-size: 8px;
+        }
+
+        .password-requirement.valid {
+            color: #28a745;
+        }
+
+        .password-requirement.valid::before {
+            content: "✓";
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .password-requirement.invalid {
+            color: #dc3545;
+        }
+
+        .password-strength {
+            margin-top: 8px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .password-strength.weak {
+            color: #dc3545;
+        }
+
+        .password-strength.medium {
+            color: #ffc107;
+        }
+
+        .password-strength.strong {
+            color: #28a745;
+        }
     </style>
 </head>
 <body>
@@ -165,6 +215,17 @@
                 <label for="password">密码</label>
                 <input type="password" id="password" name="password" required>
                 <div class="password-hint">密码至少8位，包含字母、数字和特殊字符</div>
+                
+                <!-- 密码强度验证 -->
+                <div class="password-requirements">
+                    <div id="req-length" class="password-requirement invalid">至少8个字符</div>
+                    <div id="req-letter" class="password-requirement invalid">包含字母</div>
+                    <div id="req-digit" class="password-requirement invalid">包含数字</div>
+                    <div id="req-special" class="password-requirement invalid">包含特殊字符</div>
+                </div>
+                
+                <!-- 密码强度显示 -->
+                <div id="password-strength" class="password-strength weak">密码强度：弱</div>
             </div>
             
             <div class="form-group">
@@ -206,6 +267,59 @@
     </div>
 
     <script>
+        // 密码强度验证逻辑
+        function validatePassword(password) {
+            // 密码验证规则
+            const rules = {
+                length: password.length >= 8,
+                letter: /[a-zA-Z]/.test(password),
+                digit: /\d/.test(password),
+                special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+            };
+            
+            // 更新验证状态
+            document.getElementById('req-length').className = rules.length ? 'password-requirement valid' : 'password-requirement invalid';
+            document.getElementById('req-letter').className = rules.letter ? 'password-requirement valid' : 'password-requirement invalid';
+            document.getElementById('req-digit').className = rules.digit ? 'password-requirement valid' : 'password-requirement invalid';
+            document.getElementById('req-special').className = rules.special ? 'password-requirement valid' : 'password-requirement invalid';
+            
+            // 计算密码强度
+            let strength = 0;
+            if (rules.length) strength++;
+            if (rules.letter) strength++;
+            if (rules.digit) strength++;
+            if (rules.special) strength++;
+            
+            // 更新密码强度显示
+            const strengthElement = document.getElementById('password-strength');
+            switch (strength) {
+                case 1:
+                case 2:
+                    strengthElement.className = 'password-strength weak';
+                    strengthElement.textContent = '密码强度：弱';
+                    break;
+                case 3:
+                    strengthElement.className = 'password-strength medium';
+                    strengthElement.textContent = '密码强度：中';
+                    break;
+                case 4:
+                    strengthElement.className = 'password-strength strong';
+                    strengthElement.textContent = '密码强度：强';
+                    break;
+                default:
+                    strengthElement.className = 'password-strength weak';
+                    strengthElement.textContent = '密码强度：弱';
+            }
+            
+            return rules;
+        }
+        
+        // 监听密码输入事件，实时验证
+        document.getElementById('password').addEventListener('input', function(e) {
+            const password = e.target.value;
+            validatePassword(password);
+        });
+        
         document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
@@ -221,6 +335,13 @@
             // 验证密码一致性
             if (password !== confirmPassword) {
                 alert('两次输入的密码不一致');
+                return;
+            }
+            
+            // 验证密码强度
+            const rules = validatePassword(password);
+            if (!rules.length || !rules.letter || !rules.digit || !rules.special) {
+                alert('密码不满足强度要求，请检查密码规则');
                 return;
             }
             
