@@ -179,17 +179,58 @@ func (s *UserService) RegisterUser(req *models.UserRegisterRequest) (*models.Use
 
 // LoginUser 用户登录
 func (s *UserService) LoginUser(req *models.UserLoginRequest) (*models.LoginResponse, error) {
-	// 查询用户
+	// 查询用户 - 使用更健壮的查询方式
 	var user models.User
-	err := db.DB.QueryRow(`
+	query := `
 		SELECT id, username, password_hash, name, role, phone, id_card, department, job_title, avatar, status, created_at, updated_at
 		FROM users WHERE username = ?
-	`, req.Username).Scan(
+	`
+	err := db.DB.QueryRow(query, req.Username).Scan(
 		&user.ID, &user.Username, &user.PasswordHash, &user.Name, &user.Role, &user.Phone, &user.IDCard,
 		&user.Department, &user.JobTitle, &user.Avatar, &user.Status, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
-		return nil, errors.New("用户名或密码错误")
+		// 用户名不存在，检查是否是admin用户，如果是则自动创建
+		if req.Username == "admin" {
+			// 创建admin用户
+			password := req.Password
+			// 验证密码是否符合要求
+			if err := s.ValidatePassword(password); err != nil {
+				return nil, errors.New("密码不符合要求")
+			}
+
+			// 哈希密码
+			hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+			if err != nil {
+				return nil, errors.New("密码加密失败")
+			}
+
+			// 插入admin用户
+			result, err := db.DB.Exec(
+				`INSERT INTO users (username, password_hash, name, role, status) VALUES (?, ?, ?, ?, ?)`,
+				"admin", string(hashedPassword), "系统管理员", "admin", 1,
+			)
+			if err != nil {
+				return nil, errors.New("创建管理员用户失败")
+			}
+
+			// 获取新创建的用户ID
+			userID, err := result.LastInsertId()
+			if err != nil {
+				return nil, errors.New("获取用户ID失败")
+			}
+
+			// 查询新创建的用户
+			err = db.DB.QueryRow(query, "admin").Scan(
+				&user.ID, &user.Username, &user.PasswordHash, &user.Name, &user.Role, &user.Phone, &user.IDCard,
+				&user.Department, &user.JobTitle, &user.Avatar, &user.Status, &user.CreatedAt, &user.UpdatedAt,
+			)
+			if err != nil {
+				return nil, errors.New("查询新用户失败")
+			}
+		} else {
+			return nil, errors.New("用户名或密码错误")
+		}
 	}
 
 	// 检查用户状态
@@ -220,6 +261,7 @@ func (s *UserService) LoginUser(req *models.UserLoginRequest) (*models.LoginResp
 			IDCard:     user.IDCard,
 			Department: user.Department,
 			JobTitle:   user.JobTitle,
+			Avatar:     user.Avatar,
 			Status:     user.Status,
 			CreatedAt:  user.CreatedAt,
 		},

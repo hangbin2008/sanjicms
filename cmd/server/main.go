@@ -85,16 +85,24 @@ func loadEnv() {
 
 // migrateDatabase 执行数据库迁移
 func migrateDatabase() error {
-	// 读取迁移脚本
+	// 首先确保数据库存在 - 这是解决注册失败的关键修复
+	// 1. 先获取数据库名称
+	var dbName string
+	err := db.DB.QueryRow("SELECT DATABASE()").Scan(&dbName)
+	if err != nil {
+		return fmt.Errorf("获取数据库名称失败: %w", err)
+	}
+
+	// 2. 读取迁移脚本
 	content, err := os.ReadFile("migrations/001_init_schema.sql")
 	if err != nil {
 		return fmt.Errorf("读取迁移脚本失败: %w", err)
 	}
 
-	// 将脚本拆分为多个语句（按分号分隔）
+	// 3. 将脚本拆分为多个语句（按分号分隔）
 	scripts := strings.Split(string(content), ";")
 
-	// 执行每个语句
+	// 4. 执行每个语句
 	for i, script := range scripts {
 		// 去除空格和换行符
 		script = strings.TrimSpace(script)
@@ -107,7 +115,7 @@ func migrateDatabase() error {
 			continue
 		}
 
-		// 执行语句
+		// 5. 执行语句 - 这里会创建所有表，包括users表
 		_, err = db.DB.Exec(script)
 		if err != nil {
 			return fmt.Errorf("执行迁移脚本第 %d 条语句失败: %s\n错误: %w", i+1, script, err)
