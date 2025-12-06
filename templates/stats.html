@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s ease;
+        }
+
+        .nav a:hover {
+            opacity: 0.8;
+        }
+
+        .main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .stats-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
+
+        .stats-container h2 {
+            margin-bottom: 2rem;
+            color: #333;
+            font-size: 1.8rem;
+        }
+
+        /* 用户菜单样式 */
+        .user-menu-container {
+            position: relative;
+        }
+
+        .user-menu-trigger {
+            position: relative;
+            padding-right: 20px;
+        }
+
+        .user-menu-trigger::after {
+            content: '▼';
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.7rem;
+        }
+
+        .user-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            color: #333;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 1000;
+            min-width: 150px;
+        }
+
+        .user-menu a {
+            display: block;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.2s ease;
+        }
+
+        .user-menu a:hover {
+            background-color: #f8f9fa;
+        }
+
+        .user-menu a:last-child {
+            border-bottom: none;
+            color: #dc3545;
+        }
+
+        /* 统计卡片 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .stat-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.9;
+        }
+
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        /* 图表容器 */
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-section {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+        }
+
+        .chart-section h3 {
+            margin-bottom: 1.5rem;
+            color: #333;
+            font-size: 1.3rem;
+            text-align: center;
+        }
+
+        .chart-container {
+            height: 300px;
+            background-color: white;
+            border-radius: 8px;
+            padding: 1rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 成绩分布表格 */
+        .score-distribution {
+            margin-bottom: 2rem;
+        }
+
+        .score-distribution h3 {
+            margin-bottom: 1.5rem;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .distribution-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .distribution-table th,
+        .distribution-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .distribution-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .distribution-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* 考试列表 */
+        .exam-selector {
+            margin-bottom: 2rem;
+        }
+
+        .exam-selector h3 {
+            margin-bottom: 1rem;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .exam-selector select {
+            padding: 0.75rem;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+            min-width: 300px;
+        }
+
+        .exam-selector select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* 排名表格 */
+        .ranking-section {
+            margin-bottom: 2rem;
+        }
+
+        .ranking-section h3 {
+            margin-bottom: 1.5rem;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            overflow-x: auto;
+        }
+
+        .ranking-table th,
+        .ranking-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .ranking-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .ranking-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .ranking-table .rank-1 {
+            background-color: rgba(255, 215, 0, 0.2);
+            font-weight: bold;
+        }
+
+        .ranking-table .rank-2 {
+            background-color: rgba(192, 192, 192, 0.2);
+            font-weight: bold;
+        }
+
+        .ranking-table .rank-3 {
+            background-color: rgba(205, 127, 50, 0.2);
+            font-weight: bold;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .charts-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .stats-container {
+                padding: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+
+            .distribution-table,
+            .ranking-table {
+                font-size: 0.9rem;
+            }
+
+            .distribution-table th,
+            .distribution-table td,
+            .ranking-table th,
+            .ranking-table td {
+                padding: 0.5rem;
+            }
+
+            .exam-selector select {
+                min-width: auto;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <h1>基层三基考试系统</h1>
+            <nav class="nav">
+                <a href="/">首页</a>
+                <a href="/exams">我的考试</a>
+                <a href="/records">考试记录</a>
+                <a href="/practice">模拟练习</a>
+                <div class="user-menu-container">
+                    <a href="#" class="user-menu-trigger" id="userMenuTrigger">{{.userName}}</a>
+                    <div class="user-menu" id="userMenu">
+                        <a href="/profile">个人中心</a>
+                        <a href="/change-password">修改密码</a>
+                        <a href="/logout">退出登录</a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="stats-container">
+            <h2>考试成绩统计分析</h2>
+
+            <!-- 考试选择器 -->
+            <div class="exam-selector">
+                <h3>选择考试</h3>
+                <select id="examSelector">
+                    <option value="all">所有考试</option>
+                    <option value="1">2025年度三基理论考试</option>
+                    <option value="2">内科三基考试</option>
+                    <option value="3">外科三基考试</option>
+                </select>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>参加人数</h3>
+                    <div class="value">{{.stats.totalParticipants}}</div>
+                </div>
+                <div class="stat-card">
+                    <h3>平均成绩</h3>
+                    <div class="value">{{.stats.avgScore}}分</div>
+                </div>
+                <div class="stat-card">
+                    <h3>最高分</h3>
+                    <div class="value">{{.stats.maxScore}}分</div>
+                </div>
+                <div class="stat-card">
+                    <h3>最低分</h3>
+                    <div class="value">{{.stats.minScore}}分</div>
+                </div>
+                <div class="stat-card">
+                    <h3>通过率</h3>
+                    <div class="value">{{.stats.passRate}}%</div>
+                </div>
+                <div class="stat-card">
+                    <h3>优秀率</h3>
+                    <div class="value">{{.stats.excellentRate}}%</div>
+                </div>
+            </div>
+
+            <!-- 图表部分 -->
+            <div class="charts-container">
+                <!-- 成绩分布图表 -->
+                <div class="chart-section">
+                    <h3>成绩分布</h3>
+                    <div class="chart-container">
+                        <!-- 这里可以嵌入ECharts等图表库 -->
+                        <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #6c757d;">
+                            📊 成绩分布图表（开发中）
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 考试趋势图表 -->
+                <div class="chart-section">
+                    <h3>考试趋势</h3>
+                    <div class="chart-container">
+                        <!-- 这里可以嵌入ECharts等图表库 -->
+                        <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #6c757d;">
+                            📈 考试趋势图表（开发中）
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 成绩分布表格 -->
+            <div class="score-distribution">
+                <h3>成绩分布详情</h3>
+                <div style="overflow-x: auto;">
+                    <table class="distribution-table">
+                        <thead>
+                            <tr>
+                                <th>分数段</th>
+                                <th>人数</th>
+                                <th>占比</th>
+                                <th>平均分</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{if .scoreDistribution}}
+                                {{range .scoreDistribution}}
+                                <tr>
+                                    <td>{{.Range}}</td>
+                                    <td>{{.Count}}</td>
+                                    <td>{{.Percentage}}%</td>
+                                    <td>{{.AvgScore}}分</td>
+                                </tr>
+                                {{end}}
+                            {{else}}
+                                <tr>
+                                    <td>90-100分</td>
+                                    <td>15</td>
+                                    <td>15%</td>
+                                    <td>94分</td>
+                                </tr>
+                                <tr>
+                                    <td>80-89分</td>
+                                    <td>35</td>
+                                    <td>35%</td>
+                                    <td>85分</td>
+                                </tr>
+                                <tr>
+                                    <td>70-79分</td>
+                                    <td>25</td>
+                                    <td>25%</td>
+                                    <td>75分</td>
+                                </tr>
+                                <tr>
+                                    <td>60-69分</td>
+                                    <td>15</td>
+                                    <td>15%</td>
+                                    <td>65分</td>
+                                </tr>
+                                <tr>
+                                    <td>60分以下</td>
+                                    <td>10</td>
+                                    <td>10%</td>
+                                    <td>55分</td>
+                                </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 排名表格 -->
+            <div class="ranking-section">
+                <h3>考试排名</h3>
+                <div style="overflow-x: auto;">
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>姓名</th>
+                                <th>部门</th>
+                                <th>职称</th>
+                                <th>成绩</th>
+                                <th>正确率</th>
+                                <th>用时</th>
+                                <th>考试时间</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{if .rankings}}
+                                {{range $index, $ranking := .rankings}}
+                                <tr class="rank-{{add $index 1}}">
+                                    <td>{{add $index 1}}</td>
+                                    <td>{{$ranking.Name}}</td>
+                                    <td>{{$ranking.Department}}</td>
+                                    <td>{{$ranking.JobTitle}}</td>
+                                    <td>{{$ranking.Score}}分</td>
+                                    <td>{{$ranking.Accuracy}}%</td>
+                                    <td>{{$ranking.TimeUsed}}分钟</td>
+                                    <td>{{$ranking.ExamTime}}</td>
+                                </tr>
+                                {{end}}
+                            {{else}}
+                                <tr class="rank-1">
+                                    <td>1</td>
+                                    <td>张三</td>
+                                    <td>内科</td>
+                                    <td>主治医师</td>
+                                    <td>98分</td>
+                                    <td>98%</td>
+                                    <td>95分钟</td>
+                                    <td>2025-12-01 10:00</td>
+                                </tr>
+                                <tr class="rank-2">
+                                    <td>2</td>
+                                    <td>李四</td>
+                                    <td>外科</td>
+                                    <td>副主任医师</td>
+                                    <td>95分</td>
+                                    <td>95%</td>
+                                    <td>100分钟</td>
+                                    <td>2025-12-01 10:00</td>
+                                </tr>
+                                <tr class="rank-3">
+                                    <td>3</td>
+                                    <td>王五</td>
+                                    <td>儿科</td>
+                                    <td>主治医师</td>
+                                    <td>92分</td>
+                                    <td>92%</td>
+                                    <td>105分钟</td>
+                                    <td>2025-12-01 10:00</td>
+                                </tr>
+                                <tr>
+                                    <td>4</td>
+                                    <td>赵六</td>
+                                    <td>妇产科</td>
+                                    <td>主治医师</td>
+                                    <td>90分</td>
+                                    <td>90%</td>
+                                    <td>98分钟</td>
+                                    <td>2025-12-01 10:00</td>
+                                </tr>
+                                <tr>
+                                    <td>5</td>
+                                    <td>孙七</td>
+                                    <td>内科</td>
+                                    <td>住院医师</td>
+                                    <td>88分</td>
+                                    <td>88%</td>
+                                    <td>110分钟</td>
+                                    <td>2025-12-01 10:00</td>
+                                </tr>
+                            {{end}}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // 用户菜单交互
+        document.addEventListener('DOMContentLoaded', function() {
+            // 用户菜单显示/隐藏
+            const userMenuTrigger = document.getElementById('userMenuTrigger');
+            const userMenu = document.getElementById('userMenu');
+            
+            userMenuTrigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                userMenu.style.display = userMenu.style.display === 'block' ? 'none' : 'block';
+            });
+            
+            // 点击页面其他地方关闭菜单
+            document.addEventListener('click', function(e) {
+                if (!userMenuTrigger.contains(e.target) && !userMenu.contains(e.target)) {
+                    userMenu.style.display = 'none';
+                }
+            });
+
+            // 考试选择器变化事件
+            const examSelector = document.getElementById('examSelector');
+            examSelector.addEventListener('change', function() {
+                const examId = this.value;
+                console.log('选择考试:', examId);
+                // 实际项目中这里会调用API获取对应考试的统计数据
+                // 并更新页面内容
+            });
+
+            console.log('考试成绩统计分析页面加载完成');
+        });
+    </script>
+</body>
+</html>

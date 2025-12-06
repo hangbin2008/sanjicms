@@ -268,7 +268,7 @@
 
     <main class="main">
         <div class="dashboard">
-            <h2>欢迎回来，{{.userName}}</h2>
+            <h2>{{if .userName}}欢迎回来，{{.userName}}{{else}}欢迎回来{{end}}</h2>
 
             <!-- 新闻和院内见闻 -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">

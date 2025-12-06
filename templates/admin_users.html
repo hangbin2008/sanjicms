@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s ease;
+        }
+
+        .nav a:hover {
+            opacity: 0.8;
+        }
+
+        .main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .users-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
+
+        .users-container h2 {
+            margin-bottom: 2rem;
+            color: #333;
+            font-size: 1.8rem;
+        }
+
+        /* 用户菜单样式 */
+        .user-menu-container {
+            position: relative;
+        }
+
+        .user-menu-trigger {
+            position: relative;
+            padding-right: 20px;
+        }
+
+        .user-menu-trigger::after {
+            content: '▼';
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.7rem;
+        }
+
+        .user-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            color: #333;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 1000;
+            min-width: 150px;
+        }
+
+        .user-menu a {
+            display: block;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.2s ease;
+        }
+
+        .user-menu a:hover {
+            background-color: #f8f9fa;
+        }
+
+        .user-menu a:last-child {
+            border-bottom: none;
+            color: #dc3545;
+        }
+
+        /* 搜索和筛选 */
+        .search-filter {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+            padding: 0.75rem;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-1px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-1px);
+        }
+
+        /* 用户表格 */
+        .users-table-container {
+            overflow-x: auto;
+        }
+
+        .users-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 1.5rem;
+        }
+
+        .users-table th,
+        .users-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .users-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .users-table tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        /* 分页 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .pagination a {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #667eea;
+            transition: all 0.2s ease;
+        }
+
+        .pagination a:hover {
+            background-color: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .pagination .active {
+            background-color: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        /* 模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #6c757d;
+            transition: color 0.2s ease;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 2rem;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 1rem;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #e9ecef;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .users-container {
+                padding: 1rem;
+            }
+
+            .search-filter {
+                flex-direction: column;
+            }
+
+            .search-box {
+                min-width: auto;
+            }
+
+            .users-table {
+                font-size: 0.9rem;
+            }
+
+            .users-table th,
+            .users-table td {
+                padding: 0.5rem;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <h1>基层三基考试系统 - 管理员后台</h1>
+            <nav class="nav">
+                <a href="/">首页</a>
+                <a href="/admin">管理中心</a>
+                <a href="/admin/exams">考试管理</a>
+                <a href="/admin/users">用户管理</a>
+                <a href="/admin/news">新闻管理</a>
+                <div class="user-menu-container">
+                    <a href="#" class="user-menu-trigger" id="userMenuTrigger">{{.userName}}</a>
+                    <div class="user-menu" id="userMenu">
+                        <a href="/profile">个人中心</a>
+                        <a href="/change-password">修改密码</a>
+                        <a href="/logout">退出登录</a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="users-container">
+            <h2>用户管理</h2>
+            
+            <!-- 搜索和筛选 -->
+            <div class="search-filter">
+                <input type="text" class="search-box" placeholder="搜索用户名、姓名、手机号..." id="searchInput">
+                <button class="btn btn-primary" onclick="searchUsers()">搜索</button>
+                <button class="btn btn-secondary" onclick="resetSearch()">重置</button>
+            </div>
+            
+            <!-- 用户表格 -->
+            <div class="users-table-container">
+                <table class="users-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>用户名</th>
+                            <th>姓名</th>
+                            <th>性别</th>
+                            <th>手机号</th>
+                            <th>邮箱</th>
+                            <th>部门</th>
+                            <th>职称</th>
+                            <th>角色</th>
+                            <th>状态</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody">
+                        {{if .users}}
+                            {{range .users}}
+                            <tr>
+                                <td>{{.ID}}</td>
+                                <td>{{.Username}}</td>
+                                <td>{{.Name}}</td>
+                                <td>{{.Gender}}</td>
+                                <td>{{.Phone}}</td>
+                                <td>{{.Email}}</td>
+                                <td>{{.Department}}</td>
+                                <td>{{.JobTitle}}</td>
+                                <td>{{.Role}}</td>
+                                <td>{{if eq .Status 1}}启用{{else}}禁用{{end}}</td>
+                                <td>{{.CreatedAt.Format "2006-01-02 15:04"}}</td>
+                                <td>
+                                    <button class="btn btn-secondary" onclick="viewUser({{.ID}})" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-right: 0.5rem;">查看</button>
+                                    <button class="btn btn-warning" onclick="editUser({{.ID}})" style="padding: 0.5rem 1rem; font-size: 0.9rem; margin-right: 0.5rem;">编辑</button>
+                                    <button class="btn btn-danger" onclick="resetPassword({{.ID}})" style="padding: 0.5rem 1rem; font-size: 0.9rem;">重置密码</button>
+                                </td>
+                            </tr>
+                            {{end}}
+                        {{else}}
+                            <tr>
+                                <td colspan="12" style="text-align: center; padding: 2rem;">
+                                    <div class="empty-state">
+                                        <i>👥</i>
+                                        <h3>暂无用户数据</h3>
+                                        <p>系统中还没有注册用户</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {{end}}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- 分页 -->
+            <div class="pagination">
+                {{if gt .currentPage 1}}
+                <a href="?page={{sub .currentPage 1}}">上一页</a>
+                {{end}}
+                
+                {{range $i := $.pages}}
+                <a href="?page={{$i}}" {{if eq $i $.currentPage}}class="active"{{end}}>{{$i}}</a>
+                {{end}}
+                
+                {{if lt .currentPage .totalPages}}
+                <a href="?page={{add .currentPage 1}}">下一页</a>
+                {{end}}
+            </div>
+        </div>
+    </main>
+
+    <!-- 查看用户模态框 -->
+    <div id="viewUserModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('viewUserModal')">&times;</span>
+            <h3 class="modal-title">用户详情</h3>
+            <div id="viewUserContent">
+                <!-- 用户详情将通过JavaScript动态填充 -->
+            </div>
+            <div class="form-actions">
+                <button class="btn btn-secondary" onclick="closeModal('viewUserModal')">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑用户模态框 -->
+    <div id="editUserModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('editUserModal')">&times;</span>
+            <h3 class="modal-title">编辑用户</h3>
+            <form id="editUserForm">
+                <input type="hidden" id="editUserId">
+                <div class="form-group">
+                    <label for="editUserName" class="form-label">用户名</label>
+                    <input type="text" class="form-control" id="editUserName" name="username" readonly>
+                </div>
+                <div class="form-group">
+                    <label for="editName" class="form-label">姓名</label>
+                    <input type="text" class="form-control" id="editName" name="name" placeholder="请输入姓名">
+                </div>
+                <div class="form-group">
+                    <label for="editGender" class="form-label">性别</label>
+                    <select class="form-control" id="editGender" name="gender">
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editPhone" class="form-label">手机号</label>
+                    <input type="text" class="form-control" id="editPhone" name="phone" placeholder="请输入手机号">
+                </div>
+                <div class="form-group">
+                    <label for="editEmail" class="form-label">邮箱</label>
+                    <input type="email" class="form-control" id="editEmail" name="email" placeholder="请输入邮箱">
+                </div>
+                <div class="form-group">
+                    <label for="editDepartment" class="form-label">部门</label>
+                    <input type="text" class="form-control" id="editDepartment" name="department" placeholder="请输入部门">
+                </div>
+                <div class="form-group">
+                    <label for="editJobTitle" class="form-label">职称</label>
+                    <input type="text" class="form-control" id="editJobTitle" name="jobTitle" placeholder="请输入职称">
+                </div>
+                <div class="form-group">
+                    <label for="editRole" class="form-label">角色</label>
+                    <select class="form-control" id="editRole" name="role">
+                        <option value="user">普通用户</option>
+                        <option value="admin">管理员</option>
+                        <option value="manager">经理</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editStatus" class="form-label">状态</label>
+                    <select class="form-control" id="editStatus" name="status">
+                        <option value="1">启用</option>
+                        <option value="0">禁用</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editUserModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">保存修改</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 重置密码模态框 -->
+    <div id="resetPasswordModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal('resetPasswordModal')">&times;</span>
+            <h3 class="modal-title">重置密码</h3>
+            <form id="resetPasswordForm">
+                <input type="hidden" id="resetPasswordUserId">
+                <div class="form-group">
+                    <label for="newPassword" class="form-label">新密码</label>
+                    <input type="password" class="form-control" id="newPassword" name="password" placeholder="请输入新密码" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword" class="form-label">确认密码</label>
+                    <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="请再次输入新密码" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('resetPasswordModal')">取消</button>
+                    <button type="submit" class="btn btn-primary">重置密码</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 用户菜单交互
+        document.addEventListener('DOMContentLoaded', function() {
+            // 用户菜单显示/隐藏
+            const userMenuTrigger = document.getElementById('userMenuTrigger');
+            const userMenu = document.getElementById('userMenu');
+            
+            userMenuTrigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                userMenu.style.display = userMenu.style.display === 'block' ? 'none' : 'block';
+            });
+            
+            // 点击页面其他地方关闭菜单
+            document.addEventListener('click', function(e) {
+                if (!userMenuTrigger.contains(e.target) && !userMenu.contains(e.target)) {
+                    userMenu.style.display = 'none';
+                }
+            });
+
+            // 编辑用户表单提交
+            document.getElementById('editUserForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const userId = document.getElementById('editUserId').value;
+                const formData = new FormData(this);
+                
+                // 这里可以添加表单验证
+                
+                // 实际项目中这里会调用API更新用户信息
+                alert('用户信息更新成功');
+                closeModal('editUserModal');
+                // 刷新页面或更新表格
+            });
+
+            // 重置密码表单提交
+            document.getElementById('resetPasswordForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const password = document.getElementById('newPassword').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                
+                if (password !== confirmPassword) {
+                    alert('两次输入的密码不一致，请重新输入');
+                    return;
+                }
+                
+                // 实际项目中这里会调用API重置密码
+                alert('密码重置成功');
+                closeModal('resetPasswordModal');
+            });
+        });
+        
+        // 搜索用户
+        function searchUsers() {
+            const searchTerm = document.getElementById('searchInput').value;
+            console.log('搜索用户:', searchTerm);
+            // 实际项目中这里会调用API搜索用户
+        }
+        
+        // 重置搜索
+        function resetSearch() {
+            document.getElementById('searchInput').value = '';
+            // 实际项目中这里会调用API获取所有用户
+        }
+        
+        // 查看用户
+        function viewUser(userId) {
+            const modal = document.getElementById('viewUserModal');
+            const content = document.getElementById('viewUserContent');
+            
+            // 实际项目中这里会调用API获取用户详情
+            // 这里使用模拟数据
+            const user = {
+                id: userId,
+                username: 'testuser',
+                name: '测试用户',
+                gender: '男',
+                phone: '13800138000',
+                email: 'test@example.com',
+                department: '内科',
+                jobTitle: '主治医师',
+                role: 'user',
+                status: 1,
+                createdAt: '2025-12-01 10:00:00'
+            };
+            
+            content.innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                    <div>
+                        <div class="form-group">
+                            <label class="form-label">用户名</label>
+                            <div class="form-control" style="background: #f8f9fa; cursor: default;">${user.username}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">姓名</label>
+                            <div class="form-control" style="background: #f8f9fa; cursor: default;">${user.name}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">性别</label>
+                            <div class="form-control" style="background: #f8f9fa; cursor: default;">${user.gender}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">手机号</label>
+                            <div class="form-control" style="background: #f8f9fa; cursor: default;">${user.phone}</div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="form-group">
+                            <label class="form-label">邮箱</label>
+                            <div class="form-control" style="background: #f8f9fa; cursor: default;">${user.email}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">部门</label>
+                            <div class="form-control" style="background: #f8f9fa; cursor: default;">${user.department}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">职称</label>
+                            <div class="form-control" style="background: #f8f9fa; cursor: default;">${user.jobTitle}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">角色</label>
+                            <div class="form-control" style="background: #f8f9fa; cursor: default;">${user.role}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">状态</label>
+                            <div class="form-control" style="background: #f8f9fa; cursor: default;">${user.status === 1 ? '启用' : '禁用'}</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">创建时间</label>
+                            <div class="form-control" style="background: #f8f9fa; cursor: default;">${user.createdAt}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            modal.style.display = 'block';
+        }
+        
+        // 编辑用户
+        function editUser(userId) {
+            const modal = document.getElementById('editUserModal');
+            document.getElementById('editUserId').value = userId;
+            
+            // 实际项目中这里会调用API获取用户详情并填充表单
+            // 这里使用模拟数据
+            document.getElementById('editUserName').value = 'testuser';
+            document.getElementById('editName').value = '测试用户';
+            document.getElementById('editGender').value = '男';
+            document.getElementById('editPhone').value = '13800138000';
+            document.getElementById('editEmail').value = 'test@example.com';
+            document.getElementById('editDepartment').value = '内科';
+            document.getElementById('editJobTitle').value = '主治医师';
+            document.getElementById('editRole').value = 'user';
+            document.getElementById('editStatus').value = '1';
+            
+            modal.style.display = 'block';
+        }
+        
+        // 重置密码
+        function resetPassword(userId) {
+            const modal = document.getElementById('resetPasswordModal');
+            document.getElementById('resetPasswordUserId').value = userId;
+            document.getElementById('resetPasswordForm').reset();
+            modal.style.display = 'block';
+        }
+        
+        // 关闭模态框
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.style.display = 'none';
+        }
+        
+        // 点击模态框外部关闭模态框
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

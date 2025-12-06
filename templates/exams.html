@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{.title}}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .nav {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .nav a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s ease;
+        }
+
+        .nav a:hover {
+            opacity: 0.8;
+        }
+
+        .main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .exams-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+        }
+
+        .exams-container h2 {
+            margin-bottom: 2rem;
+            color: #333;
+            font-size: 1.8rem;
+        }
+
+        /* 用户菜单样式 */
+        .user-menu-container {
+            position: relative;
+        }
+
+        .user-menu-trigger {
+            position: relative;
+            padding-right: 20px;
+        }
+
+        .user-menu-trigger::after {
+            content: '▼';
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 0.7rem;
+        }
+
+        .user-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            color: #333;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            z-index: 1000;
+            min-width: 150px;
+        }
+
+        .user-menu a {
+            display: block;
+            padding: 0.75rem 1rem;
+            text-decoration: none;
+            color: #333;
+            border-bottom: 1px solid #e9ecef;
+            transition: background-color 0.2s ease;
+        }
+
+        .user-menu a:hover {
+            background-color: #f8f9fa;
+        }
+
+        .user-menu a:last-child {
+            border-bottom: none;
+            color: #dc3545;
+        }
+
+        /* 考试列表样式 */
+        .exams-section {
+            margin-bottom: 3rem;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            margin-bottom: 1.5rem;
+            color: #495057;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .exam-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .exam-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .exam-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #667eea;
+        }
+
+        .exam-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .exam-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .exam-info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+            color: #6c757d;
+        }
+
+        .exam-info-item i {
+            color: #667eea;
+            width: 16px;
+            text-align: center;
+        }
+
+        .exam-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-1px);
+        }
+
+        /* 考试详情模态框 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 700px;
+            position: relative;
+            animation: modalSlideIn 0.3s ease;
+        }
+
+        .close-modal {
+            position: absolute;
+            right: 1rem;
+            top: 1rem;
+            font-size: 1.5rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #6c757d;
+            transition: color 0.2s ease;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+
+        .exam-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .detail-group {
+            margin-bottom: 1rem;
+        }
+
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-value {
+            color: #6c757d;
+            font-size: 0.95rem;
+        }
+
+        .exam-notes {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+        }
+
+        .exam-notes h4 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+
+        .exam-notes p {
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 1rem;
+            color: #6c757d;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border: 2px dashed #e9ecef;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 992px) {
+            .exam-details {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .exams-container {
+                padding: 1rem;
+            }
+
+            .exam-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-container">
+            <h1>基层三基考试系统</h1>
+            <nav class="nav">
+                <a href="/">首页</a>
+                <a href="/exams">我的考试</a>
+                <a href="/records">考试记录</a>
+                <a href="/practice">模拟练习</a>
+                <div class="user-menu-container">
+                    <a href="#" class="user-menu-trigger" id="userMenuTrigger">{{.userName}}</a>
+                    <div class="user-menu" id="userMenu">
+                        <a href="/profile">个人中心</a>
+                        <a href="/change-password">修改密码</a>
+                        <a href="/logout">退出登录</a>
+                    </div>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="exams-container">
+            <h2>我的考试</h2>
+
+            <!-- 待参加考试 -->
+            <section class="exams-section">
+                <h3 class="section-title">
+                    <i>📋</i>
+                    待参加考试
+                </h3>
+                
+                {{if .upcomingExams}}
+                <div class="exam-cards">
+                    {{range .upcomingExams}}
+                    <div class="exam-card">
+                        <h4 class="exam-title">{{.Title}}</h4>
+                        <div class="exam-info">
+                            <div class="exam-info-item">
+                                <i>📚</i>
+                                <span>{{.Subject}}</span>
+                            </div>
+                            <div class="exam-info-item">
+                                <i>⏰</i>
+                                <span>{{.StartTime.Format "2006-01-02 15:04"}}</span>
+                            </div>
+                            <div class="exam-info-item">
+                                <i>⌛</i>
+                                <span>{{.Duration}}分钟</span>
+                            </div>
+                            <div class="exam-info-item">
+                                <i>📊</i>
+                                <span>{{.TotalScore}}分</span>
+                            </div>
+                            <div class="exam-info-item">
+                                <i>📝</i>
+                                <span>{{.QuestionCount}}道题</span>
+                            </div>
+                        </div>
+                        <div class="exam-actions">
+                            <button class="btn btn-primary" onclick="viewExamDetails({{.ID}})">查看详情</button>
+                            <button class="btn btn-secondary" onclick="startExam({{.ID}})">开始考试</button>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+                {{else}}
+                <div class="empty-state">
+                    <i>📭</i>
+                    <h3>暂无待参加考试</h3>
+                    <p>请关注系统通知，及时了解考试安排</p>
+                </div>
+                {{end}}
+            </section>
+
+            <!-- 已参加考试 -->
+            <section class="exams-section">
+                <h3 class="section-title">
+                    <i>✅</i>
+                    已参加考试
+                </h3>
+                
+                {{if .pastExams}}
+                <div class="exam-cards">
+                    {{range .pastExams}}
+                    <div class="exam-card">
+                        <h4 class="exam-title">{{.Title}}</h4>
+                        <div class="exam-info">
+                            <div class="exam-info-item">
+                                <i>📚</i>
+                                <span>{{.Subject}}</span>
+                            </div>
+                            <div class="exam-info-item">
+                                <i>⏰</i>
+                                <span>{{.EndTime.Format "2006-01-02 15:04"}}</span>
+                            </div>
+                            <div class="exam-info-item">
+                                <i>📊</i>
+                                <span>得分: {{.Score}}/{{.TotalScore}}分</span>
+                            </div>
+                            <div class="exam-info-item">
+                                <i>🏆</i>
+                                <span>排名: {{.Rank}}/{{.TotalParticipants}}人</span>
+                            </div>
+                            <div class="exam-info-item">
+                                <i>📈</i>
+                                <span>平均分: {{.AverageScore}}分</span>
+                            </div>
+                        </div>
+                        <div class="exam-actions">
+                            <button class="btn btn-primary" onclick="viewExamResult({{.RecordID}})">查看结果</button>
+                            <button class="btn btn-secondary" onclick="viewExamPaper({{.ID}})">查看试卷</button>
+                        </div>
+                    </div>
+                    {{end}}
+                </div>
+                {{else}}
+                <div class="empty-state">
+                    <i>📝</i>
+                    <h3>暂无已参加考试</h3>
+                    <p>快去参加第一场考试吧！</p>
+                </div>
+                {{end}}
+            </section>
+        </div>
+    </main>
+
+    <!-- 考试详情模态框 -->
+    <div id="examDetailsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeModal()">&times;</span>
+            <h3 class="modal-title" id="modalTitle">考试详情</h3>
+            <div class="exam-details" id="modalDetails">
+                <!-- 考试详情将通过JavaScript动态填充 -->
+            </div>
+            <div class="exam-notes" id="modalNotes">
+                <h4>考试注意事项</h4>
+                <p>1. 请在规定时间内完成考试</p>
+                <p>2. 考试过程中请勿刷新页面或关闭浏览器</p>
+                <p>3. 每道题只能作答一次，提交后无法修改</p>
+                <p>4. 考试结束后将自动提交试卷</p>
+                <p>5. 请确保网络连接稳定</p>
+            </div>
+            <div class="exam-actions" style="justify-content: flex-end;">
+                <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+                <button class="btn btn-primary" onclick="startExamFromModal()">开始考试</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 用户菜单交互
+        document.addEventListener('DOMContentLoaded', function() {
+            // 用户菜单显示/隐藏
+            const userMenuTrigger = document.getElementById('userMenuTrigger');
+            const userMenu = document.getElementById('userMenu');
+            
+            userMenuTrigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                userMenu.style.display = userMenu.style.display === 'block' ? 'none' : 'block';
+            });
+            
+            // 点击页面其他地方关闭菜单
+            document.addEventListener('click', function(e) {
+                if (!userMenuTrigger.contains(e.target) && !userMenu.contains(e.target)) {
+                    userMenu.style.display = 'none';
+                }
+            });
+            
+            // 模拟数据 - 实际项目中这些数据会通过API获取
+            const examsData = {
+                upcomingExams: [
+                    {
+                        id: 1,
+                        title: '2025年度三基理论考试',
+                        subject: '医学基础知识',
+                        startTime: '2025-12-10 09:00',
+                        duration: 120,
+                        totalScore: 100,
+                        questionCount: 80,
+                        description: '本次考试涵盖医学基础知识、临床技能、法律法规等内容',
+                        note: '考试过程中请勿刷新页面，否则将自动提交试卷',
+                        questionTypes: [
+                            { type: '单选题', count: 40, score: 1 },
+                            { type: '多选题', count: 20, score: 2 },
+                            { type: '判断题', count: 20, score: 1 }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        title: '外科三基考试',
+                        subject: '外科专业知识',
+                        startTime: '2025-12-15 14:00',
+                        duration: 90,
+                        totalScore: 80,
+                        questionCount: 60,
+                        description: '本次考试主要考察外科专业基础知识和操作技能',
+                        note: '考试结束后将立即显示成绩',
+                        questionTypes: [
+                            { type: '单选题', count: 30, score: 1 },
+                            { type: '多选题', count: 15, score: 2 },
+                            { type: '简答题', count: 5, score: 4 }
+                        ]
+                    }
+                ],
+                pastExams: [
+                    {
+                        id: 3,
+                        title: '内科三基考试',
+                        subject: '内科专业知识',
+                        endTime: '2025-11-20 16:30',
+                        score: 85,
+                        totalScore: 100,
+                        rank: 12,
+                        totalParticipants: 150,
+                        averageScore: 78.5,
+                        recordID: 1
+                    }
+                ]
+            };
+            
+            // 初始化页面数据
+            initPage();
+        });
+        
+        // 初始化页面数据
+        function initPage() {
+            // 这里可以添加从API获取数据的逻辑
+            console.log('我的考试页面初始化完成');
+        }
+        
+        // 查看考试详情
+        function viewExamDetails(examID) {
+            const modal = document.getElementById('examDetailsModal');
+            modal.style.display = 'block';
+            
+            // 实际项目中这里会通过API获取考试详情
+            // 这里使用模拟数据
+            const exam = {
+                id: examID,
+                title: '2025年度三基理论考试',
+                subject: '医学基础知识',
+                startTime: '2025-12-10 09:00',
+                endTime: '2025-12-10 11:00',
+                duration: 120,
+                totalScore: 100,
+                questionCount: 80,
+                description: '本次考试涵盖医学基础知识、临床技能、法律法规等内容',
+                note: '考试过程中请勿刷新页面，否则将自动提交试卷',
+                questionTypes: [
+                    { type: '单选题', count: 40, score: 1 },
+                    { type: '多选题', count: 20, score: 2 },
+                    { type: '判断题', count: 20, score: 1 }
+                ]
+            };
+            
+            // 更新模态框内容
+            document.getElementById('modalTitle').textContent = exam.title;
+            const detailsHTML = `
+                <div>
+                    <div class="detail-group">
+                        <div class="detail-label">科目</div>
+                        <div class="detail-value">${exam.subject}</div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">开始时间</div>
+                        <div class="detail-value">${exam.startTime}</div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">结束时间</div>
+                        <div class="detail-value">${exam.endTime}</div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">考试时长</div>
+                        <div class="detail-value">${exam.duration}分钟</div>
+                    </div>
+                </div>
+                <div>
+                    <div class="detail-group">
+                        <div class="detail-label">总分</div>
+                        <div class="detail-value">${exam.totalScore}分</div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">题目数量</div>
+                        <div class="detail-value">${exam.questionCount}道</div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">答题方式</div>
+                        <div class="detail-value">在线作答</div>
+                    </div>
+                    <div class="detail-group">
+                        <div class="detail-label">考试形式</div>
+                        <div class="detail-value">闭卷考试</div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('modalDetails').innerHTML = detailsHTML;
+            
+            // 保存当前考试ID到模态框
+            modal.dataset.examId = examID;
+        }
+        
+        // 关闭模态框
+        function closeModal() {
+            const modal = document.getElementById('examDetailsModal');
+            modal.style.display = 'none';
+        }
+        
+        // 从模态框开始考试
+        function startExamFromModal() {
+            const modal = document.getElementById('examDetailsModal');
+            const examID = modal.dataset.examId;
+            startExam(examID);
+        }
+        
+        // 开始考试
+        function startExam(examID) {
+            if (confirm('确定要开始考试吗？考试一旦开始将无法暂停或重新开始。')) {
+                // 实际项目中这里会跳转到考试页面
+                window.location.href = `/exam/${examID}/start`;
+            }
+        }
+        
+        // 查看考试结果
+        function viewExamResult(recordID) {
+            window.location.href = `/record/${recordID}`;
+        }
+        
+        // 查看试卷
+        function viewExamPaper(examID) {
+            window.location.href = `/exam/${examID}/paper`;
+        }
+        
+        // 点击模态框外部关闭模态框
+        window.onclick = function(event) {
+            const modal = document.getElementById('examDetailsModal');
+            if (event.target == modal) {
+                modal.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>

@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/hangbin2008/sanjicms/internal/middleware"
+	"github.com/hangbin2008/sanjicms/internal/models"
 	"github.com/hangbin2008/sanjicms/internal/service"
 	"github.com/hangbin2008/sanjicms/pkg/config"
 )
@@ -152,8 +153,25 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	// 前端页面路由
 	// 首页 - 登录成功后显示
 	router.GET("/", func(c *gin.Context) {
+		userID, exists := c.Get("user_id")
+		userName := ""
+		if exists {
+			// 获取当前用户信息
+			user, err := userService.GetUserByID(userID.(int))
+			if err == nil && user.Name != "" {
+				userName = user.Name
+			}
+		}
 		c.HTML(200, "index.html", gin.H{
-			"title": "基层三基考试系统",
+			"title":    "基层三基考试系统",
+			"userName": userName,
+			"stats": gin.H{
+				"totalExams":    0,
+				"avgScore":      0,
+				"passedExams":   0,
+				"upcomingExams": 0,
+			},
+			"recentExams": []interface{}{},
 		})
 	})
 
@@ -188,43 +206,236 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 
 	// 考试记录页面
 	router.GET("/records", func(c *gin.Context) {
+		userID, exists := c.Get("user_id")
+		userName := ""
+		if exists {
+			// 获取当前用户信息
+			user, err := userService.GetUserByID(userID.(int))
+			if err == nil {
+				if user.Name != "" {
+					userName = user.Name
+				} else {
+					userName = user.Username
+				}
+			}
+		}
 		c.HTML(200, "index.html", gin.H{
-			"title": "考试记录 - 基层三基考试系统",
+			"title":    "考试记录 - 基层三基考试系统",
+			"userName": userName,
 		})
 	})
 
 	// 个人中心页面
 	router.GET("/profile", func(c *gin.Context) {
-		c.HTML(200, "index.html", gin.H{
-			"title": "个人中心 - 基层三基考试系统",
+		userID, exists := c.Get("user_id")
+		if !exists {
+			c.Redirect(http.StatusFound, "/login")
+			return
+		}
+
+		// 获取当前用户信息
+		user, err := userService.GetUserByID(userID.(int))
+		if err != nil {
+			c.HTML(200, "profile.html", gin.H{
+				"title":    "个人中心 - 基层三基考试系统",
+				"error":    "获取用户信息失败",
+				"user":     models.User{},
+				"userName": "",
+			})
+			return
+		}
+
+		userName := ""
+		if user.Name != "" {
+			userName = user.Name
+		} else {
+			userName = user.Username
+		}
+
+		c.HTML(200, "profile.html", gin.H{
+			"title":    "个人中心 - 基层三基考试系统",
+			"user":     user,
+			"userName": userName,
 		})
 	})
 
 	// 模拟练习页面
 	router.GET("/practice", func(c *gin.Context) {
+		userID, exists := c.Get("user_id")
+		userName := ""
+		if exists {
+			// 获取当前用户信息
+			user, err := userService.GetUserByID(userID.(int))
+			if err == nil {
+				if user.Name != "" {
+					userName = user.Name
+				} else {
+					userName = user.Username
+				}
+			}
+		}
 		c.HTML(200, "index.html", gin.H{
-			"title": "模拟练习 - 基层三基考试系统",
+			"title":    "模拟练习 - 基层三基考试系统",
+			"userName": userName,
 		})
 	})
 
 	// 错题本页面
 	router.GET("/wrong-questions", func(c *gin.Context) {
+		userID, exists := c.Get("user_id")
+		userName := ""
+		if exists {
+			// 获取当前用户信息
+			user, err := userService.GetUserByID(userID.(int))
+			if err == nil {
+				if user.Name != "" {
+					userName = user.Name
+				} else {
+					userName = user.Username
+				}
+			}
+		}
 		c.HTML(200, "index.html", gin.H{
-			"title": "错题本 - 基层三基考试系统",
+			"title":    "错题本 - 基层三基考试系统",
+			"userName": userName,
 		})
 	})
 
 	// 管理员后台页面
 	router.GET("/admin", func(c *gin.Context) {
+		userID, exists := c.Get("user_id")
+		userName := ""
+		if exists {
+			// 获取当前用户信息
+			user, err := userService.GetUserByID(userID.(int))
+			if err == nil {
+				if user.Name != "" {
+					userName = user.Name
+				} else {
+					userName = user.Username
+				}
+			}
+		}
 		c.HTML(200, "index.html", gin.H{
-			"title": "管理员后台 - 基层三基考试系统",
+			"title":    "管理员后台 - 基层三基考试系统",
+			"userName": userName,
+		})
+	})
+
+	// 管理员用户列表页面
+	router.GET("/admin/users", func(c *gin.Context) {
+		userID, exists := c.Get("user_id")
+		userName := ""
+		if exists {
+			// 获取当前用户信息
+			user, err := userService.GetUserByID(userID.(int))
+			if err == nil {
+				if user.Name != "" {
+					userName = user.Name
+				} else {
+					userName = user.Username
+				}
+			}
+		}
+		// 获取用户列表数据
+		users := []models.User{}
+		// 模拟分页数据
+		currentPage := 1
+		totalPages := 1
+		pages := []int{1}
+		c.HTML(200, "admin_users.html", gin.H{
+			"title":       "用户管理 - 管理员后台",
+			"userName":    userName,
+			"users":       users,
+			"currentPage": currentPage,
+			"totalPages":  totalPages,
+			"pages":       pages,
 		})
 	})
 
 	// 考试统计页面
 	router.GET("/stats", func(c *gin.Context) {
+		userID, exists := c.Get("user_id")
+		userName := ""
+		if exists {
+			// 获取当前用户信息
+			user, err := userService.GetUserByID(userID.(int))
+			if err == nil {
+				if user.Name != "" {
+					userName = user.Name
+				} else {
+					userName = user.Username
+				}
+			}
+		}
+		// 获取考试统计数据
+		stats := gin.H{
+			"totalParticipants": 100,
+			"avgScore":          75.5,
+			"maxScore":          98,
+			"minScore":          45,
+			"passRate":          85,
+			"excellentRate":     25,
+		}
+		c.HTML(200, "stats.html", gin.H{
+			"title":    "考试统计 - 基层三基考试系统",
+			"userName": userName,
+			"stats":    stats,
+		})
+	})
+
+	// 我的考试页面
+	router.GET("/exams", func(c *gin.Context) {
+		userID, exists := c.Get("user_id")
+		userName := ""
+		if exists {
+			// 获取当前用户信息
+			user, err := userService.GetUserByID(userID.(int))
+			if err == nil {
+				if user.Name != "" {
+					userName = user.Name
+				} else {
+					userName = user.Username
+				}
+			}
+		}
+		// 获取考试数据
+		upcomingExams := []models.Exam{}
+		pastExams := []models.ExamRecord{}
+
+		c.HTML(200, "exams.html", gin.H{
+			"title":         "我的考试 - 基层三基考试系统",
+			"userName":      userName,
+			"upcomingExams": upcomingExams,
+			"pastExams":     pastExams,
+		})
+	})
+
+	// 考试详情页面
+	router.GET("/exam/:id/details", func(c *gin.Context) {
 		c.HTML(200, "index.html", gin.H{
-			"title": "考试统计 - 基层三基考试系统",
+			"title": "考试详情 - 基层三基考试系统",
+		})
+	})
+
+	// 开始考试页面
+	router.GET("/exam/:id/start", func(c *gin.Context) {
+		c.HTML(200, "index.html", gin.H{
+			"title": "开始考试 - 基层三基考试系统",
+		})
+	})
+
+	// 考试结果页面
+	router.GET("/record/:id", func(c *gin.Context) {
+		c.HTML(200, "index.html", gin.H{
+			"title": "考试结果 - 基层三基考试系统",
+		})
+	})
+
+	// 试卷查看页面
+	router.GET("/exam/:id/paper", func(c *gin.Context) {
+		c.HTML(200, "index.html", gin.H{
+			"title": "查看试卷 - 基层三基考试系统",
 		})
 	})
 
