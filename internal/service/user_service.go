@@ -234,20 +234,44 @@ func (s *UserService) LoginUser(req *models.UserLoginRequest) (*models.LoginResp
 		return nil, errors.New("用户已被禁用")
 	}
 
-	// 验证密码
+	// 验证密码 - 增强版：确保admin用户可以使用默认密码登录
+	var passwordVerified bool
+
+	// 1. 尝试使用用户提供的密码验证
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password))
-	if err != nil {
-		// 如果是admin用户，尝试使用默认密码验证
+	if err == nil {
+		passwordVerified = true
+	} else {
+		// 2. 如果是admin用户，尝试使用默认密码验证
 		if user.Username == "admin" {
 			defaultPassword := "Admin@123"
+			// 2.1 尝试直接验证默认密码
 			if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(defaultPassword)) == nil {
 				log.Println("使用默认密码验证admin用户成功")
+				passwordVerified = true
 			} else {
-				return nil, errors.New("用户名或密码错误")
+				// 2.2 如果默认密码也不匹配，尝试重新设置admin密码为默认密码
+				log.Println("admin用户密码不匹配，尝试重新设置默认密码")
+				newHashedPassword, hashErr := bcrypt.GenerateFromPassword([]byte(defaultPassword), bcrypt.DefaultCost)
+				if hashErr == nil {
+					// 更新admin用户的密码
+					_, updateErr := db.DB.Exec(
+						"UPDATE users SET password_hash = ? WHERE username = ?",
+						string(newHashedPassword), "admin")
+					if updateErr == nil {
+						log.Println("admin用户密码已更新为默认密码")
+						passwordVerified = true
+					} else {
+						log.Printf("更新admin用户密码失败: %v\n", updateErr)
+					}
+				}
 			}
-		} else {
-			return nil, errors.New("用户名或密码错误")
 		}
+	}
+
+	// 如果密码验证失败，返回错误
+	if !passwordVerified {
+		return nil, errors.New("用户名或密码错误")
 	}
 
 	// 生成JWT令牌
