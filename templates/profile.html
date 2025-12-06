@@ -322,8 +322,15 @@
                 <a href="/exams">我的考试</a>
                 <a href="/records">考试记录</a>
                 <a href="/practice">模拟练习</a>
-                <div class="user-menu-container">
-                    <a href="#" class="user-menu-trigger" id="userMenuTrigger">{{.userName}}</a>
+                <div class="user-menu-container" style="position: relative; display: flex; align-items: center; gap: 1rem;">
+                    {{if .userAvatar}}
+                    <img src="{{.userAvatar}}" alt="头像" style="width: 32px; height: 32px; border-radius: 50%; object-fit: cover;">
+                    {{else}}
+                    <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                        {{if .userName}}U{{else}}?{{end}}
+                    </div>
+                    {{end}}
+                    <a href="#" class="user-menu-trigger" id="userMenuTrigger" style="color: white; font-weight: 600; text-decoration: none;">{{.userName}}</a>
                     <div class="user-menu" id="userMenu">
                         <a href="/profile">个人中心</a>
                         <a href="/change-password">修改密码</a>
@@ -433,8 +440,11 @@
             const userMenu = document.getElementById('userMenu');
             
             userMenuTrigger.addEventListener('click', function(e) {
-                e.preventDefault();
-                userMenu.style.display = userMenu.style.display === 'block' ? 'none' : 'block';
+                // 只有点击触发元素（不是链接）时才阻止默认行为
+                if (e.target === userMenuTrigger) {
+                    e.preventDefault();
+                    userMenu.style.display = userMenu.style.display === 'block' ? 'none' : 'block';
+                }
             });
             
             // 点击页面其他地方关闭菜单
