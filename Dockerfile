@@ -1,7 +1,6 @@
-# 使用官方Go镜像作为构建环境
+# 多阶段构建
 FROM golang:1.25-alpine AS builder
 
-# 设置工作目录
 WORKDIR /app
 
 # 复制go.mod和go.sum文件
@@ -22,13 +21,8 @@ FROM alpine:latest
 # 设置工作目录
 WORKDIR /app
 
-# 复制构建好的二进制文件
+# 只复制必要的二进制文件
 COPY --from=builder /app/main .
-
-# 从builder阶段复制静态文件和模板
-COPY --from=builder /app/static ./static
-COPY --from=builder /app/templates ./templates
-COPY --from=builder /app/migrations ./migrations
 
 # 设置环境变量
 ENV GIN_MODE=release
