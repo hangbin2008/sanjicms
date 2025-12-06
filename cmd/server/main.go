@@ -91,10 +91,27 @@ func migrateDatabase() error {
 		return fmt.Errorf("读取迁移脚本失败: %w", err)
 	}
 
-	// 执行迁移脚本
-	_, err = db.DB.Exec(string(content))
-	if err != nil {
-		return fmt.Errorf("执行迁移脚本失败: %w", err)
+	// 将脚本拆分为多个语句（按分号分隔）
+	scripts := strings.Split(string(content), ";")
+
+	// 执行每个语句
+	for i, script := range scripts {
+		// 去除空格和换行符
+		script = strings.TrimSpace(script)
+		// 跳过空语句
+		if script == "" {
+			continue
+		}
+		// 跳过注释
+		if strings.HasPrefix(strings.TrimSpace(script), "--") {
+			continue
+		}
+
+		// 执行语句
+		_, err = db.DB.Exec(script)
+		if err != nil {
+			return fmt.Errorf("执行迁移脚本第 %d 条语句失败: %s\n错误: %w", i+1, script, err)
+		}
 	}
 
 	log.Println("数据库迁移成功")
