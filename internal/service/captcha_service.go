@@ -19,13 +19,13 @@ func NewCaptchaService() *CaptchaService {
 
 // GenerateCaptcha 生成验证码
 func (s *CaptchaService) GenerateCaptcha() (string, string, error) {
-	// 配置验证码生成器
+	// 配置验证码生成器 - 调整参数使验证码更清晰
 	driver := base64Captcha.NewDriverDigit(
-		80,  // 宽度
-		32,  // 高度
-		4,   // 字符数
-		0.7, // 干扰系数
-		80,  // 最大干扰点数
+		120, // 宽度 - 增加宽度，字符更清晰
+		48,  // 高度 - 增加高度，字符更清晰
+		4,   // 字符数 - 保持不变
+		0.3, // 干扰系数 - 降低干扰，提高可读性
+		30,  // 最大干扰点数 - 减少干扰点，提高可读性
 	)
 
 	// 创建验证码实例
