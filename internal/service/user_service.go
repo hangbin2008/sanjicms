@@ -92,13 +92,8 @@ func (s *UserService) ValidateName(name string) error {
 	return nil
 }
 
-// RegisterUser 用户注册
+// RegisterUser 用户注册 - 简化版：只需要账号、密码和验证码
 func (s *UserService) RegisterUser(req *models.UserRegisterRequest) (*models.User, error) {
-	// 验证姓名
-	if err := s.ValidateName(req.Name); err != nil {
-		return nil, err
-	}
-
 	// 验证密码
 	if err := s.ValidatePassword(req.Password); err != nil {
 		return nil, err
@@ -114,45 +109,21 @@ func (s *UserService) RegisterUser(req *models.UserRegisterRequest) (*models.Use
 		return nil, errors.New("用户名已存在")
 	}
 
-	// 检查手机号是否已存在
-	if req.Phone != "" {
-		err = db.DB.QueryRow("SELECT COUNT(*) FROM users WHERE phone = ?", req.Phone).Scan(&count)
-		if err != nil {
-			return nil, err
-		}
-		if count > 0 {
-			return nil, errors.New("手机号已存在")
-		}
-	}
-
-	// 检查身份证号是否已存在
-	if req.IDCard != "" {
-		err = db.DB.QueryRow("SELECT COUNT(*) FROM users WHERE id_card = ?", req.IDCard).Scan(&count)
-		if err != nil {
-			return nil, err
-		}
-		if count > 0 {
-			return nil, errors.New("身份证号已存在")
-		}
-	}
-
 	// 加密密码
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
 
-	// 设置默认角色
-	role := req.Role
-	if role == "" {
-		role = "employee"
-	}
+	// 设置默认值
+	defaultName := req.Username // 使用用户名作为默认姓名
+	defaultRole := "employee"   // 默认角色为员工/考生
 
-	// 插入用户记录
+	// 插入用户记录 - 简化版：只插入必要字段
 	result, err := db.DB.Exec(`
-		INSERT INTO users (username, password_hash, name, role, phone, id_card, department, job_title)
-		VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-	`, req.Username, string(hashedPassword), req.Name, role, req.Phone, req.IDCard, req.Department, req.JobTitle)
+		INSERT INTO users (username, password_hash, name, role)
+		VALUES (?, ?, ?, ?)
+	`, req.Username, string(hashedPassword), defaultName, defaultRole)
 	if err != nil {
 		return nil, err
 	}
