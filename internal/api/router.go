@@ -43,8 +43,8 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	// 创建控制器实例
 	controllers := NewControllers(userService, questionService, examService)
 
-	// 健康检查路由
-	router.GET("/health", func(c *gin.Context) {
+	// 健康检查路由 - 只有站长可以访问
+	router.GET("/health", middleware.RoleAuth("admin"), func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "ok",
 			"message": "基层三基考试系统 API 运行正常",
@@ -66,6 +66,18 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		// 用户相关路由
 		protected.GET("/user/me", controllers.GetCurrentUser)
 		protected.PUT("/user/me", controllers.UpdateUser)
+
+		// 调试路由组 - 只有站长可以访问
+		debug := protected.Group("/debug")
+		debug.Use(middleware.RoleAuth("admin"))
+		{
+			debug.GET("/templates", func(c *gin.Context) {
+				c.JSON(200, gin.H{
+					"message": "模板文件加载配置",
+					"pattern": "./templates/*",
+				})
+			})
+		}
 
 		// 题库相关路由（需要管理员权限）
 		bank := protected.Group("/banks")
@@ -124,6 +136,13 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 			wrong.GET("/", controllers.ListWrongQuestions)
 			// 移除错题
 			wrong.DELETE("/:id", controllers.RemoveWrongQuestion)
+		}
+
+		// 管理员功能路由组 - 只有管理员可以访问
+		admin := protected.Group("/admin")
+		admin.Use(middleware.RoleAuth("admin", "manager"))
+		{
+			// 这里可以添加更多管理员功能
 		}
 	}
 

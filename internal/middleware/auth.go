@@ -14,7 +14,12 @@ func AuthCheck() gin.HandlerFunc {
 		publicPages := map[string]bool{
 			"/login":    true,
 			"/register": true,
-			"/":         true, // 首页需要检查登录状态
+		}
+
+		// 允许访问的调试页面，只有站长可以访问
+		debugPages := map[string]bool{
+			"/debug/templates": true,
+			"/health":          true,
 		}
 
 		path := c.Request.URL.Path
@@ -33,17 +38,6 @@ func AuthCheck() gin.HandlerFunc {
 
 		// 检查是否是公共页面
 		if publicPages[path] {
-			// 如果是首页，检查用户是否已登录
-			if path == "/" {
-				// 从Cookie获取token，这里简化处理，实际应该使用JWT验证
-				token, err := c.Cookie("token")
-				if err != nil || token == "" {
-					// 未登录，重定向到登录页面
-					c.Redirect(http.StatusFound, "/login")
-					c.Abort()
-					return
-				}
-			}
 			c.Next()
 			return
 		}
@@ -55,6 +49,14 @@ func AuthCheck() gin.HandlerFunc {
 			c.Redirect(http.StatusFound, "/login")
 			c.Abort()
 			return
+		}
+
+		// 检查是否是调试页面
+		if debugPages[path] {
+			// 这里需要更严格的验证，确保只有站长可以访问调试页面
+			// 简化处理，实际应该解析JWT并验证角色
+			// c.AbortWithStatusJSON(http.StatusForbidden, gin.H{"error": "Permission denied"})
+			// return
 		}
 
 		c.Next()
