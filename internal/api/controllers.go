@@ -40,6 +40,12 @@ func (c *Controllers) Register(ctx *gin.Context) {
 		return
 	}
 
+	// 验证验证码
+	if !c.captchaService.VerifyCaptcha(req.CaptchaID, req.Captcha) {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "验证码错误"})
+		return
+	}
+
 	user, err := c.userService.RegisterUser(&req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -99,6 +105,17 @@ func (c *Controllers) Login(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 		return
 	}
+
+	// 设置JWT令牌到Cookie，用于前端页面访问控制
+	ctx.SetCookie(
+		"token",
+		response.Token,
+		3600,  // 过期时间（秒）
+		"/",   // 路径
+		"",    // 域名
+		false, // 仅HTTPS
+		true,  // HttpOnly
+	)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "登录成功",

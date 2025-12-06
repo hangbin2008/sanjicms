@@ -308,40 +308,43 @@
             {{end}}
             
             <form id="login-form">
-                <div class="form-group">
-                    <label for="username">用户名</label>
-                    <div class="input-with-icon">
+            <div class="form-group">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <label for="username" style="width: 80px; margin: 0;\ text-align: right;">用户名</label>
+                    <div class="input-with-icon" style="flex: 1;">
                         <i class="fas fa-user"></i>
                         <input type="text" id="username" name="username" placeholder="请输入手机号或身份证号" required>
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="password">密码</label>
-                    <div class="input-with-icon">
+            </div>
+            
+            <div class="form-group">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <label for="password" style="width: 80px; margin: 0;\ text-align: right;">密码</label>
+                    <div class="input-with-icon" style="flex: 1;">
                         <i class="fas fa-lock"></i>
                         <input type="password" id="password" name="password" placeholder="请输入密码" required>
                     </div>
                 </div>
-                
-                <div class="form-group">
-                    <label for="captcha">验证码</label>
-                    <div class="captcha-row">
-                        <div class="input-with-icon">
+            </div>
+            <div class="form-group">
+                <div style="display: flex; align-items: center; gap: 15px;">
+                    <label for="captcha" style="width: 80px; margin: 0;\ text-align: right;">验证码</label>
+                    <div class="captcha-row" style="flex: 1; gap: 12px;">
+                        <div class="input-with-icon" style="flex: 1;">
                             <i class="fas fa-shield-alt"></i>
                             <input type="text" id="captcha" name="captcha" placeholder="请输入验证码" required>
                         </div>
-                        <img id="captcha-image" src="" alt="验证码" onclick="refreshCaptcha()">
+                        <img id="captcha-image" src="" alt="验证码" style="width: 130px; height: 52px; cursor: pointer; border: 2px solid #e0e0e0; border-radius: 8px; transition: all 0.3s ease;" onclick="refreshCaptcha()">
                     </div>
                 </div>
-                
-                <input type="hidden" id="captcha-id" name="captcha_id">
-                
-                <button type="submit" class="btn">
-                    <i class="fas fa-sign-in-alt"></i>
-                    登录
-                </button>
-            </form>
+            </div>
+            <input type="hidden" id="captcha-id" name="captcha_id">
+            <button type="submit" class="btn" style="margin-top: 30px;">
+                <i class="fas fa-sign-in-alt"></i>
+                登录
+            </button>
+        </form>
             
             <div class="register-link">
                 还没有账号？ <a href="/register">立即注册</a>

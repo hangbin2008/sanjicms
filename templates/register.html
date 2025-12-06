@@ -367,25 +367,29 @@
             {{end}}
             
             <form id="registerForm">
-                <!-- 简化后的注册表单 - 只保留关键字段 -->
+                <!-- 简化后的注册表单 - 只保留关键字段，标签和输入框在同一行 -->
                 <div class="form-group">
-                    <label for="username">用户名 (手机号或身份证号)</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="username" name="username" placeholder="请输入手机号或身份证号" required>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <label for="username" style="width: 120px; margin: 0;\ text-align: right;">用户名</label>
+                        <div class="input-with-icon" style="flex: 1;">
+                            <i class="fas fa-user"></i>
+                            <input type="text" id="username" name="username" placeholder="请输入手机号或身份证号" required>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="password">密码</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="password" name="password" placeholder="请输入密码" required>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <label for="password" style="width: 120px; margin: 0;\ text-align: right;">密码</label>
+                        <div class="input-with-icon" style="flex: 1;">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="password" name="password" placeholder="请输入密码" required>
+                        </div>
                     </div>
                     <div class="password-hint">密码至少8位，包含字母、数字和特殊字符</div>
                     
                     <!-- 密码强度验证 -->
-                    <div class="password-requirements">
+                    <div class="password-requirements" style="margin-left: 135px;">
                         <div id="req-length" class="password-requirement invalid">至少8个字符</div>
                         <div id="req-letter" class="password-requirement invalid">包含字母</div>
                         <div id="req-digit" class="password-requirement invalid">包含数字</div>
@@ -393,26 +397,34 @@
                     </div>
                     
                     <!-- 密码强度显示 -->
-                    <div id="password-strength" class="password-strength weak">密码强度：弱</div>
+                    <div id="password-strength" class="password-strength weak" style="margin-left: 135px;">密码强度：弱</div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="confirmPassword">确认密码</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-lock"></i>
-                        <input type="password" id="confirmPassword" name="confirmPassword" placeholder="请再次输入密码" required>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <label for="confirmPassword" style="width: 120px; margin: 0;\ text-align: right;">确认密码</label>
+                        <div class="input-with-icon" style="flex: 1;">
+                            <i class="fas fa-lock"></i>
+                            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="请再次输入密码" required>
+                        </div>
                     </div>
                 </div>
                 
                 <div class="form-group">
-                    <label for="name">姓名</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-id-card"></i>
-                        <input type="text" id="name" name="name" placeholder="请输入您的姓名" required>
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <label for="captcha" style="width: 120px; margin: 0;\ text-align: right;">验证码</label>
+                        <div class="captcha-row" style="flex: 1; gap: 12px;">
+                            <div class="input-with-icon" style="flex: 1;">
+                                <i class="fas fa-shield-alt"></i>
+                                <input type="text" id="captcha" name="captcha" placeholder="请输入验证码" required>
+                            </div>
+                            <img id="captcha-image" src="" alt="验证码" style="width: 130px; height: 52px; cursor: pointer; border: 2px solid #e0e0e0; border-radius: 8px; transition: all 0.3s ease;" onclick="refreshCaptcha()">
+                        </div>
                     </div>
+                    <input type="hidden" id="captcha-id" name="captcha_id">
                 </div>
                 
-                <button type="submit" class="btn">
+                <button type="submit" class="btn" style="margin-top: 30px;">
                     <i class="fas fa-user-plus"></i>
                     立即注册
                 </button>
