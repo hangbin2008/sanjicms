@@ -25,10 +25,10 @@ WORKDIR /app
 # 复制构建好的二进制文件
 COPY --from=builder /app/main .
 
-# 复制静态文件和模板
-COPY ./static ./static
-COPY ./templates ./templates
-COPY ./migrations ./migrations
+# 从builder阶段复制静态文件和模板
+COPY --from=builder /app/static ./static
+COPY --from=builder /app/templates ./templates
+COPY --from=builder /app/migrations ./migrations
 
 # 设置环境变量
 ENV GIN_MODE=release
