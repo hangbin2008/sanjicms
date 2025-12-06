@@ -100,13 +100,11 @@ func migrateDatabase() error {
 
 	// 4. 执行迁移脚本 - 增强版本：确保脚本被正确执行
 	log.Println("开始执行迁移脚本...")
-	migrateSuccess := false
 
 	// 尝试1: 直接执行整个脚本
 	_, err = db.DB.Exec(string(content))
 	if err == nil {
 		log.Println("直接执行脚本成功")
-		migrateSuccess = true
 	} else {
 		log.Printf("直接执行脚本失败: %v，尝试逐行执行...\n", err)
 
@@ -155,7 +153,6 @@ func migrateDatabase() error {
 		// 只有当没有行错误时，才认为迁移成功
 		if lineErrors == 0 {
 			log.Println("逐行执行脚本成功")
-			migrateSuccess = true
 		} else {
 			log.Printf("逐行执行脚本失败，共 %d 个错误\n", lineErrors)
 		}
