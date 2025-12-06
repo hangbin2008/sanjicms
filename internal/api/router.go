@@ -1,6 +1,8 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/hangbin2008/sanjicms/internal/middleware"
 	"github.com/hangbin2008/sanjicms/internal/service"
@@ -26,6 +28,9 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 			"pattern": "./templates/*",
 		})
 	})
+
+	// 添加认证检查中间件，用于前端页面访问控制
+	router.Use(middleware.AuthCheck())
 
 	// 创建JWT中间件
 	jwtConfig := middleware.NewJWTConfig(cfg)
@@ -60,6 +65,7 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	{
 		// 用户相关路由
 		protected.GET("/user/me", controllers.GetCurrentUser)
+		protected.PUT("/user/me", controllers.UpdateUser)
 
 		// 题库相关路由（需要管理员权限）
 		bank := protected.Group("/banks")
@@ -84,8 +90,9 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		{
 			// 生成试卷（需要管理员权限）
 			exam.POST("/generate", middleware.RoleAuth("admin", "manager"), controllers.GenerateExam)
-			// 获取试卷列表和详情（所有用户都可以访问）
-			exam.GET("/", controllers.GetExamByID)
+			// 获取试卷列表
+			exam.GET("/", controllers.ListExams)
+			// 获取试卷详情
 			exam.GET("/:id", controllers.GetExamByID)
 			// 开始考试
 			exam.POST("/:id/start", controllers.StartExam)
@@ -100,24 +107,102 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 			record.GET("/:id", controllers.GetExamRecord)
 			record.GET("/stats", controllers.GetExamStats)
 		}
+
+		// 模拟练习相关路由
+		practice := protected.Group("/practice")
+		{
+			// 获取练习题目
+			practice.GET("/questions", controllers.GetPracticeQuestions)
+			// 提交练习答案
+			practice.POST("/submit", controllers.SubmitPractice)
+		}
+
+		// 错题本相关路由
+		wrong := protected.Group("/wrong-questions")
+		{
+			// 获取错题列表
+			wrong.GET("/", controllers.ListWrongQuestions)
+			// 移除错题
+			wrong.DELETE("/:id", controllers.RemoveWrongQuestion)
+		}
 	}
 
 	// 前端页面路由
+	// 首页 - 登录成功后显示
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(200, "index.html", gin.H{
 			"title": "基层三基考试系统",
 		})
 	})
 
+	// 登录页面
 	router.GET("/login", func(c *gin.Context) {
 		c.HTML(200, "login.html", gin.H{
 			"title": "登录 - 基层三基考试系统",
 		})
 	})
 
+	// 注册页面
 	router.GET("/register", func(c *gin.Context) {
 		c.HTML(200, "register.html", gin.H{
 			"title": "注册 - 基层三基考试系统",
+		})
+	})
+
+	// 登出路由
+	router.GET("/logout", func(c *gin.Context) {
+		// 清除Cookie
+		c.SetCookie("token", "", -1, "/", "", false, true)
+		// 重定向到登录页面
+		c.Redirect(http.StatusFound, "/login")
+	})
+
+	// 考试相关页面
+	router.GET("/exams", func(c *gin.Context) {
+		c.HTML(200, "index.html", gin.H{
+			"title": "我的考试 - 基层三基考试系统",
+		})
+	})
+
+	// 考试记录页面
+	router.GET("/records", func(c *gin.Context) {
+		c.HTML(200, "index.html", gin.H{
+			"title": "考试记录 - 基层三基考试系统",
+		})
+	})
+
+	// 个人中心页面
+	router.GET("/profile", func(c *gin.Context) {
+		c.HTML(200, "index.html", gin.H{
+			"title": "个人中心 - 基层三基考试系统",
+		})
+	})
+
+	// 模拟练习页面
+	router.GET("/practice", func(c *gin.Context) {
+		c.HTML(200, "index.html", gin.H{
+			"title": "模拟练习 - 基层三基考试系统",
+		})
+	})
+
+	// 错题本页面
+	router.GET("/wrong-questions", func(c *gin.Context) {
+		c.HTML(200, "index.html", gin.H{
+			"title": "错题本 - 基层三基考试系统",
+		})
+	})
+
+	// 管理员后台页面
+	router.GET("/admin", func(c *gin.Context) {
+		c.HTML(200, "index.html", gin.H{
+			"title": "管理员后台 - 基层三基考试系统",
+		})
+	})
+
+	// 考试统计页面
+	router.GET("/stats", func(c *gin.Context) {
+		c.HTML(200, "index.html", gin.H{
+			"title": "考试统计 - 基层三基考试系统",
 		})
 	})
 

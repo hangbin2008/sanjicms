@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     id_card VARCHAR(18) UNIQUE, -- 身份证号
     department VARCHAR(100), -- 部门
     job_title VARCHAR(50), -- 职称
+    avatar VARCHAR(255), -- 头像URL
     status TINYINT DEFAULT 1, -- 状态：1-启用，0-禁用
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP

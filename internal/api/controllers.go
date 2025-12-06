@@ -105,6 +105,45 @@ func (c *Controllers) GetCurrentUser(ctx *gin.Context) {
 			IDCard:     user.IDCard,
 			Department: user.Department,
 			JobTitle:   user.JobTitle,
+			Avatar:     user.Avatar,
+			Status:     user.Status,
+			CreatedAt:  user.CreatedAt,
+		},
+	})
+}
+
+// UpdateUser 更新用户信息
+func (c *Controllers) UpdateUser(ctx *gin.Context) {
+	userID, exists := ctx.Get("user_id")
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "未登录"})
+		return
+	}
+
+	var req models.UserUpdateRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	user, err := c.userService.UpdateUser(userID.(int), &req)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "更新用户信息失败"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "更新用户信息成功",
+		"user": models.UserResponse{
+			ID:         user.ID,
+			Username:   user.Username,
+			Name:       user.Name,
+			Role:       user.Role,
+			Phone:      user.Phone,
+			IDCard:     user.IDCard,
+			Department: user.Department,
+			JobTitle:   user.JobTitle,
+			Avatar:     user.Avatar,
 			Status:     user.Status,
 			CreatedAt:  user.CreatedAt,
 		},
@@ -385,5 +424,72 @@ func (c *Controllers) GetExamStats(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "获取考试统计成功",
 		"stats":   stats,
+	})
+}
+
+// ListExams 获取试卷列表
+func (c *Controllers) ListExams(ctx *gin.Context) {
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(ctx.DefaultQuery("page_size", "20"))
+
+	exams, total, err := c.examService.ListExams(page, pageSize)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "获取试卷列表成功",
+		"data": gin.H{
+			"exams":     exams,
+			"total":     total,
+			"page":      page,
+			"page_size": pageSize,
+		},
+	})
+}
+
+// GetPracticeQuestions 获取练习题目
+func (c *Controllers) GetPracticeQuestions(ctx *gin.Context) {
+	// 这里需要实现GetPracticeQuestions方法
+	ctx.JSON(http.StatusOK, gin.H{
+		"message":   "获取练习题目成功",
+		"questions": []models.Question{},
+	})
+}
+
+// SubmitPractice 提交练习答案
+func (c *Controllers) SubmitPractice(ctx *gin.Context) {
+	// 这里需要实现SubmitPractice方法
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "提交练习答案成功",
+		"score":   0,
+		"correct": 0,
+		"total":   0,
+	})
+}
+
+// ListWrongQuestions 获取错题列表
+func (c *Controllers) ListWrongQuestions(ctx *gin.Context) {
+	page, _ := strconv.Atoi(ctx.DefaultQuery("page", "1"))
+	pageSize, _ := strconv.Atoi(ctx.DefaultQuery("page_size", "20"))
+
+	// 这里需要实现ListWrongQuestions方法
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "获取错题列表成功",
+		"data": gin.H{
+			"questions": []models.Question{},
+			"total":     0,
+			"page":      page,
+			"page_size": pageSize,
+		},
+	})
+}
+
+// RemoveWrongQuestion 移除错题
+func (c *Controllers) RemoveWrongQuestion(ctx *gin.Context) {
+	// 这里需要实现RemoveWrongQuestion方法
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "移除错题成功",
 	})
 }

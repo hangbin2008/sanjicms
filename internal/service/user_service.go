@@ -164,11 +164,11 @@ func (s *UserService) RegisterUser(req *models.UserRegisterRequest) (*models.Use
 	// 查询插入的用户信息
 	var user models.User
 	err = db.DB.QueryRow(`
-		SELECT id, username, name, role, phone, id_card, department, job_title, status, created_at, updated_at
+		SELECT id, username, name, role, phone, id_card, department, job_title, avatar, status, created_at, updated_at
 		FROM users WHERE id = ?
 	`, userID).Scan(
 		&user.ID, &user.Username, &user.Name, &user.Role, &user.Phone, &user.IDCard,
-		&user.Department, &user.JobTitle, &user.Status, &user.CreatedAt, &user.UpdatedAt,
+		&user.Department, &user.JobTitle, &user.Avatar, &user.Status, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
@@ -182,11 +182,11 @@ func (s *UserService) LoginUser(req *models.UserLoginRequest) (*models.LoginResp
 	// 查询用户
 	var user models.User
 	err := db.DB.QueryRow(`
-		SELECT id, username, password_hash, name, role, phone, id_card, department, job_title, status, created_at, updated_at
+		SELECT id, username, password_hash, name, role, phone, id_card, department, job_title, avatar, status, created_at, updated_at
 		FROM users WHERE username = ?
 	`, req.Username).Scan(
 		&user.ID, &user.Username, &user.PasswordHash, &user.Name, &user.Role, &user.Phone, &user.IDCard,
-		&user.Department, &user.JobTitle, &user.Status, &user.CreatedAt, &user.UpdatedAt,
+		&user.Department, &user.JobTitle, &user.Avatar, &user.Status, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		return nil, errors.New("用户名或密码错误")
@@ -233,15 +233,47 @@ func (s *UserService) LoginUser(req *models.UserLoginRequest) (*models.LoginResp
 func (s *UserService) GetUserByID(userID int) (*models.User, error) {
 	var user models.User
 	err := db.DB.QueryRow(`
-		SELECT id, username, name, role, phone, id_card, department, job_title, status, created_at, updated_at
+		SELECT id, username, name, role, phone, id_card, department, job_title, avatar, status, created_at, updated_at
 		FROM users WHERE id = ?
 	`, userID).Scan(
 		&user.ID, &user.Username, &user.Name, &user.Role, &user.Phone, &user.IDCard,
-		&user.Department, &user.JobTitle, &user.Status, &user.CreatedAt, &user.UpdatedAt,
+		&user.Department, &user.JobTitle, &user.Avatar, &user.Status, &user.CreatedAt, &user.UpdatedAt,
 	)
 	if err != nil {
 		return nil, err
 	}
 
 	return &user, nil
+}
+
+// UpdateUser 更新用户信息
+func (s *UserService) UpdateUser(userID int, req *models.UserUpdateRequest) (*models.User, error) {
+	// 构建更新语句
+	updateSQL := `
+		UPDATE users SET
+		name = COALESCE(?, name),
+		phone = COALESCE(?, phone),
+		id_card = COALESCE(?, id_card),
+		department = COALESCE(?, department),
+		job_title = COALESCE(?, job_title),
+		avatar = COALESCE(?, avatar)
+		WHERE id = ?
+	`
+
+	// 执行更新
+	_, err := db.DB.Exec(updateSQL,
+		req.Name,
+		req.Phone,
+		req.IDCard,
+		req.Department,
+		req.JobTitle,
+		req.Avatar,
+		userID,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// 获取更新后的用户信息
+	return s.GetUserByID(userID)
 }

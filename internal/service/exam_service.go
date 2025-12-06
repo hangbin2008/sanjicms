@@ -515,3 +515,52 @@ func (s *ExamService) GetExamStats(userID int) (map[string]interface{}, error) {
 
 	return stats, nil
 }
+
+// ListExams 获取试卷列表
+func (s *ExamService) ListExams(page, pageSize int) ([]models.Exam, int, error) {
+	if page < 1 {
+		page = 1
+	}
+	if pageSize < 1 || pageSize > 100 {
+		pageSize = 20
+	}
+
+	offset := (page - 1) * pageSize
+	var exams []models.Exam
+	var total int
+
+	// 获取总记录数
+	err := db.DB.QueryRow("SELECT COUNT(*) FROM exams WHERE status = 'published'").Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// 获取试卷列表
+	rows, err := db.DB.Query(`
+		SELECT id, title, description, subject, total_score, duration, start_time, end_time, status, created_by, created_at, updated_at
+		FROM exams WHERE status = 'published'
+		ORDER BY created_at DESC LIMIT ? OFFSET ?
+	`, pageSize, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var exam models.Exam
+		err := rows.Scan(
+			&exam.ID, &exam.Title, &exam.Description, &exam.Subject, &exam.TotalScore, &exam.Duration,
+			&exam.StartTime, &exam.EndTime, &exam.Status, &exam.CreatedBy, &exam.CreatedAt, &exam.UpdatedAt,
+		)
+		if err != nil {
+			return nil, 0, err
+		}
+		exams = append(exams, exam)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, 0, err
+	}
+
+	return exams, total, nil
+}
