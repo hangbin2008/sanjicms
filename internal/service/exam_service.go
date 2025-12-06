@@ -1,12 +1,11 @@
 package service
 
 import (
-	"database/sql"
 	"errors"
 	"time"
 
-	"github.com/yourusername/jiceng-sanji-exam/internal/db"
-	"github.com/yourusername/jiceng-sanji-exam/internal/models"
+	"github.com/hangbin2008/sanjicms/internal/db"
+	"github.com/hangbin2008/sanjicms/internal/models"
 )
 
 // ExamService 试卷服务
@@ -493,12 +492,12 @@ func (s *ExamService) GetExamStats(userID int) (map[string]interface{}, error) {
 		var totalScore float64
 		var startTime time.Time
 		var status string
-		
+
 		err := rows.Scan(&id, &examID, &totalScore, &startTime, &status)
 		if err != nil {
 			return nil, err
 		}
-		
+
 		recentExams = append(recentExams, map[string]interface{}{
 			"id":          id,
 			"exam_id":     examID,

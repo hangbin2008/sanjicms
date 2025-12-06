@@ -2,9 +2,9 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/yourusername/jiceng-sanji-exam/internal/middleware"
-	"github.com/yourusername/jiceng-sanji-exam/internal/service"
-	"github.com/yourusername/jiceng-sanji-exam/pkg/config"
+	"github.com/hangbin2008/sanjicms/internal/middleware"
+	"github.com/hangbin2008/sanjicms/internal/service"
+	"github.com/hangbin2008/sanjicms/pkg/config"
 )
 
 // SetupRouter 配置路由
@@ -32,7 +32,7 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	// 健康检查路由
 	router.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{
-			"status": "ok",
+			"status":  "ok",
 			"message": "基层三基考试系统 API 运行正常",
 		})
 	})

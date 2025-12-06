@@ -22,7 +22,9 @@ jobs:
 
     # 安装依赖
     - name: Install dependencies
-      run: go mod download
+      run: |
+        go mod tidy
+        go mod download
 
     # 运行测试
     - name: Run tests

@@ -1,4 +1,4 @@
-module github.com/yourusername/jiceng-sanji-exam
+module github.com/hangbin2008/sanjicms
 
 go 1.25.5
 

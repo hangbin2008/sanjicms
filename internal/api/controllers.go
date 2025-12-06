@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/yourusername/jiceng-sanji-exam/internal/models"
-	"github.com/yourusername/jiceng-sanji-exam/internal/service"
+	"github.com/hangbin2008/sanjicms/internal/models"
+	"github.com/hangbin2008/sanjicms/internal/service"
 )
 
 // Controllers API控制器
@@ -25,7 +25,7 @@ func NewControllers(
 	return &Controllers{
 		userService:     userService,
 		questionService: questionService,
-	examService:     examService,
+		examService:     examService,
 	}
 }
 
@@ -236,7 +236,7 @@ func (c *Controllers) ListQuestionsByBank(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"message":   "获取题目列表成功",
+		"message": "获取题目列表成功",
 		"data": gin.H{
 			"questions": questions,
 			"total":     total,

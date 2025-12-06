@@ -6,10 +6,10 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/yourusername/jiceng-sanji-exam/internal/db"
-	"github.com/yourusername/jiceng-sanji-exam/internal/middleware"
-	"github.com/yourusername/jiceng-sanji-exam/internal/models"
-	"github.com/yourusername/jiceng-sanji-exam/pkg/config"
+	"github.com/hangbin2008/sanjicms/internal/db"
+	"github.com/hangbin2008/sanjicms/internal/middleware"
+	"github.com/hangbin2008/sanjicms/internal/models"
+	"github.com/hangbin2008/sanjicms/pkg/config"
 	"golang.org/x/crypto/bcrypt"
 )
 

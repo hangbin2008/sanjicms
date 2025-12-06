@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/yourusername/jiceng-sanji-exam/internal/api"
-	"github.com/yourusername/jiceng-sanji-exam/internal/db"
-	"github.com/yourusername/jiceng-sanji-exam/pkg/config"
+	"github.com/hangbin2008/sanjicms/internal/api"
+	"github.com/hangbin2008/sanjicms/internal/db"
+	"github.com/hangbin2008/sanjicms/pkg/config"
 )
 
 func main() {

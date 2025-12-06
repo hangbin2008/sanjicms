@@ -7,7 +7,7 @@ import (
 	"time"
 
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/yourusername/jiceng-sanji-exam/pkg/config"
+	"github.com/hangbin2008/sanjicms/pkg/config"
 )
 
 var DB *sql.DB
