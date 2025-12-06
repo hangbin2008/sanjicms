@@ -4,8 +4,8 @@ version: '3.8'
 name: ${APP_NAME:-jiceng-sanji-exam}
 
 services:
-  # 应用程序服务
-  ${APP_NAME:-app}:
+  # 应用程序服务（静态服务名称，不支持动态）
+  app:
     image: ghcr.io/hangbin2008/sanjicms:latest
     ports:
       - "${SERVER_PORT:-8080}:${SERVER_PORT:-8080}"
@@ -31,13 +31,13 @@ services:
       - PASSWORD_REQUIRE_DIGIT=${PASSWORD_REQUIRE_DIGIT:-true}
       - PASSWORD_REQUIRE_SPECIAL=${PASSWORD_REQUIRE_SPECIAL:-true}
     depends_on:
-      - ${DB_SERVICE_NAME:-db}
+      - db
     restart: always
-    # 容器名称
+    # 容器名称（支持动态）
     container_name: ${APP_NAME:-jiceng-sanji-exam}-app
 
-  # MySQL数据库服务
-  ${DB_SERVICE_NAME:-db}:
+  # MySQL数据库服务（静态服务名称，不支持动态）
+  db:
     image: mysql:5.7
     ports:
       - "${DB_PORT:-3306}:3306"
@@ -47,13 +47,14 @@ services:
       - MYSQL_CHARSET=${DB_CHARSET:-utf8mb4}
       - MYSQL_COLLATION=utf8mb4_unicode_ci
     volumes:
-      # 挂载数据库数据目录
-      - ${APP_NAME:-jiceng-sanji-exam}-db_data:/var/lib/mysql
+      # 挂载数据库数据目录（使用静态卷名）
+      - db_data:/var/lib/mysql
       # 挂载初始化脚本
       - ./migrations:/docker-entrypoint-initdb.d
     restart: always
-    # 容器名称
+    # 容器名称（支持动态）
     container_name: ${APP_NAME:-jiceng-sanji-exam}-db
 
 volumes:
-  ${APP_NAME:-jiceng-sanji-exam}-db_data:
+  # 静态数据卷名称
+  db_data:
