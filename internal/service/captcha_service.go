@@ -19,13 +19,13 @@ func NewCaptchaService() *CaptchaService {
 
 // GenerateCaptcha 生成验证码
 func (s *CaptchaService) GenerateCaptcha() (string, string, error) {
-	// 配置验证码生成器 - 使用正确的NewDriverDigit参数，修复编译错误
+	// 配置验证码生成器 - 修复参数顺序，NewDriverDigit的参数顺序是：height, width, length, maxSkew, dotNoiseCount
 	driver := base64Captcha.NewDriverDigit(
-		120, // 宽度
-		48,  // 高度
-		4,   // 字符数
-		0.0, // 干扰系数 - 完全无干扰，确保清晰
-		0,   // 最大干扰点数 - 完全无干扰
+		48,  // 高度（参数1：height）
+		120, // 宽度（参数2：width）
+		4,   // 字符数（参数3：length）
+		0.3, // 干扰系数（参数4：maxSkew）- 适度干扰，既保证安全又清晰
+		30,  // 最大干扰点数（参数5：dotNoiseCount）- 适度干扰点
 	)
 
 	// 创建验证码实例
