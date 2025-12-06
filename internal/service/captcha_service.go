@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/json"
 	"fmt"
 	"sync"
 
@@ -22,11 +21,11 @@ func NewCaptchaService() *CaptchaService {
 func (s *CaptchaService) GenerateCaptcha() (string, string, error) {
 	// 配置验证码生成器
 	driver := base64Captcha.NewDriverDigit(
-		80,   // 宽度
-		32,   // 高度
-		4,    // 字符数
-		0.7,  // 干扰系数
-		80,   // 最大干扰点数
+		80,  // 宽度
+		32,  // 高度
+		4,   // 字符数
+		0.7, // 干扰系数
+		80,  // 最大干扰点数
 	)
 
 	// 创建验证码实例
@@ -86,8 +85,9 @@ func (s *CaptchaService) Get(id string, clear bool) string {
 }
 
 // Set 实现base64Captcha.Store接口
-func (s *CaptchaService) Set(id string, value string) {
+func (s *CaptchaService) Set(id string, value string) error {
 	s.store.Store(id, value)
+	return nil
 }
 
 // Verify 实现base64Captcha.Store接口
