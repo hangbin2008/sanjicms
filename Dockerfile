@@ -21,8 +21,10 @@ FROM alpine:latest
 # 设置工作目录
 WORKDIR /app
 
-# 只复制必要的二进制文件
+# 复制必要的文件
 COPY --from=builder /app/main .
+COPY --from=builder /app/templates ./templates
+COPY --from=builder /app/migrations ./migrations
 
 # 设置环境变量
 ENV GIN_MODE=release
