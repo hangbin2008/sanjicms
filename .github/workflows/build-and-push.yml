@@ -77,7 +77,7 @@ jobs:
     # 清理旧工作流运行，只保留最近3个
     - name: Clean old workflow runs
       uses: actions/github-script@v7
-      continue-on-error: false  # 清理失败时中断构建，便于调试
+      continue-on-error: true  # 允许清理失败，不中断构建
       with:
         script: |
           try {
@@ -87,11 +87,11 @@ jobs:
             console.log(`当前工作流: ${context.workflow}`);
             console.log(`当前仓库: ${context.repo.owner}/${context.repo.repo}`);
             
-            // 2. 直接获取当前工作流的运行列表 - 优化：使用workflow名称直接查询
-            const runs = await github.rest.actions.listWorkflowRuns({
+            // 2. 获取所有工作流运行（不指定工作流ID）
+            // 这是正确的API调用方式，获取仓库的所有工作流运行
+            const runs = await github.rest.actions.listWorkflowRunsForRepo({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              workflow_id: context.workflow,
               per_page: 100
             });
             
@@ -109,7 +109,7 @@ jobs:
               // 按时间顺序删除（先删除最旧的）
               for (const run of runsToDelete.reverse()) {
                 try {
-                  console.log(`尝试删除运行: ${run.id} (${run.created_at})`);
+                  console.log(`尝试删除运行: ${run.id} (${run.created_at}) - 工作流: ${run.name}`);
                   await github.rest.actions.deleteWorkflowRun({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
@@ -119,7 +119,6 @@ jobs:
                   deletedCount++;
                 } catch (error) {
                   console.error(`❌ 删除运行 ${run.id} 失败: ${error.message}`);
-                  console.error('详细错误:', error);
                   // 继续处理其他运行
                 }
               }
@@ -133,7 +132,7 @@ jobs:
             console.error(`⚠️ 清理脚本执行失败: ${error.message}`);
             console.error('详细错误信息:');
             console.error(JSON.stringify(error, null, 2));
-            throw error; // 抛出错误，中断构建以便调试
+            // 不抛出错误，允许构建继续
           }
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
