@@ -23,8 +23,8 @@ type User struct {
 }
 
 type UserRegisterRequest struct {
-	Username  string `json:"username" binding:"required"`
-	Password  string `json:"password" binding:"required"`
+	Username  string `json:"username" binding:"required,alphanum,min=3,max=20"`
+	Password  string `json:"password" binding:"required,min=6,max=20"`
 	CaptchaID string `json:"captcha_id" binding:"required"`
 	Captcha   string `json:"captcha" binding:"required"`
 }
@@ -32,7 +32,7 @@ type UserRegisterRequest struct {
 type UserUpdateRequest struct {
 	Name       string `json:"name" binding:"omitempty"`
 	Gender     string `json:"gender" binding:"omitempty"`
-	Email      string `json:"email" binding:"omitempty"`
+	Email      string `json:"email" binding:"omitempty,email"`
 	Phone      string `json:"phone" binding:"omitempty"`
 	IDCard     string `json:"id_card" binding:"omitempty"`
 	Department string `json:"department" binding:"omitempty"`
@@ -41,7 +41,7 @@ type UserUpdateRequest struct {
 }
 
 type UserLoginRequest struct {
-	Username  string `json:"username" binding:"required"`
+	Username  string `json:"username" binding:"required,alphanum"`
 	Password  string `json:"password" binding:"required"`
 	CaptchaID string `json:"captcha_id" binding:"required"`
 	Captcha   string `json:"captcha" binding:"required"`

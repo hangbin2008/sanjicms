@@ -236,6 +236,9 @@
             margin-top: 8px;
             font-size: 13px;
             margin-left: 2px;
+            display: flex;
+            gap: 20px;
+            margin-bottom: 5px;
         }
         
         .password-requirement {
@@ -449,62 +452,46 @@
     </div>
 
     <script>
-        // 密码强度验证逻辑
-        function validatePassword(password) {
+        // 密码强度验证逻辑 - 默认隐藏，只在提交时显示不符合要求的项
+        function validatePassword(password, showAll = false) {
             // 获取反馈容器
             const feedbackContainer = document.getElementById('password-feedback');
             
-            // 显示反馈容器（当用户开始输入密码时）
-            if (password.length > 0) {
-                feedbackContainer.style.display = 'block';
-            } else {
-                feedbackContainer.style.display = 'none';
-                return { length: false, letter: false, digit: false, special: false };
-            }
-            
             // 密码验证规则
             const rules = {
-                length: password.length >= 8,
+                length: password.length >= 6 && password.length <= 20,
                 letter: /[a-zA-Z]/.test(password),
                 digit: /\d/.test(password),
-                special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+                special: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+                noSpaces: !/\s/.test(password)
             };
             
             // 更新验证状态
-            document.getElementById('req-length').className = rules.length ? 'password-requirement valid' : 'password-requirement invalid';
-            document.getElementById('req-letter').className = rules.letter ? 'password-requirement valid' : 'password-requirement invalid';
-            document.getElementById('req-digit').className = rules.digit ? 'password-requirement valid' : 'password-requirement invalid';
-            document.getElementById('req-special').className = rules.special ? 'password-requirement valid' : 'password-requirement invalid';
+            const reqLength = document.getElementById('req-length');
+            const reqLetter = document.getElementById('req-letter');
+            const reqDigit = document.getElementById('req-digit');
+            const reqSpecial = document.getElementById('req-special');
             
-            // 计算密码强度
-            let strength = 0;
-            if (rules.length) strength++;
-            if (rules.letter) strength++;
-            if (rules.digit) strength++;
-            if (rules.special) strength++;
+            reqLength.className = rules.length ? 'password-requirement valid' : 'password-requirement invalid';
+            reqLetter.className = rules.letter ? 'password-requirement valid' : 'password-requirement invalid';
+            reqDigit.className = rules.digit ? 'password-requirement valid' : 'password-requirement invalid';
+            reqSpecial.className = rules.special ? 'password-requirement valid' : 'password-requirement invalid';
             
-            // 更新密码强度显示
-            const strengthElement = document.getElementById('password-strength');
-            switch (strength) {
-                case 1:
-                case 2:
-                    strengthElement.className = 'password-strength weak';
-                    strengthElement.textContent = '密码强度：弱';
-                    break;
-                case 3:
-                    strengthElement.className = 'password-strength medium';
-                    strengthElement.textContent = '密码强度：中';
-                    break;
-                case 4:
-                    strengthElement.className = 'password-strength strong';
-                    strengthElement.textContent = '密码强度：强';
-                    break;
-                default:
-                    strengthElement.className = 'password-strength weak';
-                    strengthElement.textContent = '密码强度：弱';
+            // 显示/隐藏反馈容器
+            if (showAll) {
+                feedbackContainer.style.display = 'block';
+            } else {
+                feedbackContainer.style.display = 'none';
             }
             
             return rules;
+        }
+        
+        // 检查用户名是否符合要求
+        function validateUsername(username) {
+            // 用户名只能是英文或数字或字母和数字，不能有特殊符号、空格及中文
+            const isValid = /^[a-zA-Z0-9]+$/.test(username) && username.length >= 3 && username.length <= 20;
+            return isValid;
         }
         
         // 页面加载时生成验证码
@@ -547,16 +534,41 @@
             const captcha = document.getElementById('captcha').value;
             const captchaId = document.getElementById('captcha-id').value;
             
+            // 检查用户名是否包含空格
+            if (/\s/.test(username)) {
+                alert('用户名不能包含空格');
+                return;
+            }
+            
+            // 验证用户名格式
+            if (!validateUsername(username)) {
+                alert('用户名只能是英文或数字，长度3-20个字符');
+                return;
+            }
+            
+            // 检查密码是否包含空格
+            if (/\s/.test(password)) {
+                alert('密码不能包含空格');
+                return;
+            }
+            
             // 验证密码一致性
             if (password !== confirmPassword) {
                 alert('两次输入的密码不一致');
                 return;
             }
             
-            // 验证密码强度
-            const rules = validatePassword(password);
-            if (!rules.length || !rules.letter || !rules.digit || !rules.special) {
-                alert('密码不满足强度要求，请检查密码规则');
+            // 验证密码强度，显示所有规则
+            const rules = validatePassword(password, true);
+            const invalidRules = [];
+            
+            if (!rules.length) invalidRules.push('长度6-20个字符');
+            if (!rules.letter) invalidRules.push('包含字母');
+            if (!rules.digit) invalidRules.push('包含数字');
+            if (!rules.special) invalidRules.push('包含特殊字符');
+            
+            if (invalidRules.length > 0) {
+                alert('密码不符合要求：' + invalidRules.join('、'));
                 return;
             }
             
