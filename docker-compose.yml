@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # 应用程序服务
   app:
-    build: .
+    image: ghcr.io/hangbin2008/sanjicms:latest
     ports:
       - "8080:8080"
     environment:
