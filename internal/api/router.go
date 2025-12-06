@@ -153,18 +153,30 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	// 前端页面路由
 	// 首页 - 登录成功后显示
 	router.GET("/", func(c *gin.Context) {
-		userID, exists := c.Get("user_id")
 		userName := ""
-		if exists {
-			// 获取当前用户信息
-			user, err := userService.GetUserByID(userID.(int))
-			if err == nil && user.Name != "" {
-				userName = user.Name
+		userAvatar := ""
+		// 从cookie中获取token
+		token, err := c.Cookie("token")
+		if err == nil && token != "" {
+			// 解析token获取用户ID
+			claims, err := jwtConfig.ParseToken(token)
+			if err == nil {
+				// 获取当前用户信息
+				user, err := userService.GetUserByID(claims.UserID)
+				if err == nil {
+					if user.Name != "" {
+						userName = user.Name
+					} else {
+						userName = user.Username
+					}
+					userAvatar = user.Avatar
+				}
 			}
 		}
 		c.HTML(200, "index.html", gin.H{
-			"title":    "基层三基考试系统",
-			"userName": userName,
+			"title":      "基层三基考试系统",
+			"userName":   userName,
+			"userAvatar": userAvatar,
 			"stats": gin.H{
 				"totalExams":    0,
 				"avgScore":      0,
@@ -220,14 +232,22 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 
 	// 个人中心页面
 	router.GET("/profile", func(c *gin.Context) {
-		userID, exists := c.Get("user_id")
-		if !exists {
+		// 从cookie中获取token
+		token, err := c.Cookie("token")
+		if err != nil || token == "" {
+			c.Redirect(http.StatusFound, "/login")
+			return
+		}
+
+		// 解析token获取用户ID
+		claims, err := jwtConfig.ParseToken(token)
+		if err != nil {
 			c.Redirect(http.StatusFound, "/login")
 			return
 		}
 
 		// 获取当前用户信息
-		user, err := userService.GetUserByID(userID.(int))
+		user, err := userService.GetUserByID(claims.UserID)
 		if err != nil {
 			c.HTML(200, "profile.html", gin.H{
 				"title":    "个人中心 - 基层三基考试系统",
@@ -379,16 +399,23 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 
 	// 我的考试页面
 	router.GET("/exams", func(c *gin.Context) {
-		userID, exists := c.Get("user_id")
 		userName := ""
-		if exists {
-			// 获取当前用户信息
-			user, err := userService.GetUserByID(userID.(int))
+		userAvatar := ""
+		// 从cookie中获取token
+		token, err := c.Cookie("token")
+		if err == nil && token != "" {
+			// 解析token获取用户ID
+			claims, err := jwtConfig.ParseToken(token)
 			if err == nil {
-				if user.Name != "" {
-					userName = user.Name
-				} else {
-					userName = user.Username
+				// 获取当前用户信息
+				user, err := userService.GetUserByID(claims.UserID)
+				if err == nil {
+					if user.Name != "" {
+						userName = user.Name
+					} else {
+						userName = user.Username
+					}
+					userAvatar = user.Avatar
 				}
 			}
 		}
@@ -399,6 +426,7 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		c.HTML(200, "exams.html", gin.H{
 			"title":         "我的考试 - 基层三基考试系统",
 			"userName":      userName,
+			"userAvatar":    userAvatar,
 			"upcomingExams": upcomingExams,
 			"pastExams":     pastExams,
 		})
