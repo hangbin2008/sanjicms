@@ -206,18 +206,12 @@ func (s *UserService) LoginUser(req *models.UserLoginRequest) (*models.LoginResp
 			}
 
 			// 插入admin用户
-			result, err := db.DB.Exec(
+			_, err = db.DB.Exec(
 				`INSERT INTO users (username, password_hash, name, role, status) VALUES (?, ?, ?, ?, ?)`,
 				"admin", string(hashedPassword), "系统管理员", "admin", 1,
 			)
 			if err != nil {
 				return nil, errors.New("创建管理员用户失败")
-			}
-
-			// 获取新创建的用户ID
-			userID, err := result.LastInsertId()
-			if err != nil {
-				return nil, errors.New("获取用户ID失败")
 			}
 
 			// 查询新创建的用户
