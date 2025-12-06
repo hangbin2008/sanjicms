@@ -19,26 +19,13 @@ func NewCaptchaService() *CaptchaService {
 
 // GenerateCaptcha 生成验证码
 func (s *CaptchaService) GenerateCaptcha() (string, string, error) {
-	// 配置验证码生成器 - 使用字符串驱动，避免数字驱动可能的畸变问题
-	driver := base64Captcha.NewDriverString(
-		48,  // 高度
+	// 配置验证码生成器 - 使用正确的NewDriverDigit参数，修复编译错误
+	driver := base64Captcha.NewDriverDigit(
 		120, // 宽度
-		0,   // 噪声
-		base64Captcha.Option{
-			UseNoise:        true,         // 使用噪声
-			NoiseLevel:      0.2,          // 噪声水平 - 低噪声
-			UseSineLine:     false,        // 不使用正弦线干扰
-			UseFont:         true,         // 使用字体
-			Fonts:           []string{},   // 使用默认字体
-			Width:           120,          // 宽度
-			Height:          48,           // 高度
-			FontSize:        32,           // 字体大小
-			CharSet:         "0123456789", // 字符集 - 只使用数字
-			Length:          4,            // 字符数
-			ShowLineOptions: 0,            // 不显示干扰线
-			BkgColor:        nil,          // 默认背景色
-			TextColor:       nil,          // 默认文字颜色
-		},
+		48,  // 高度
+		4,   // 字符数
+		0.0, // 干扰系数 - 完全无干扰，确保清晰
+		0,   // 最大干扰点数 - 完全无干扰
 	)
 
 	// 创建验证码实例
