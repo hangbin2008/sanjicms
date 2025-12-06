@@ -286,9 +286,9 @@ func (s *UserService) LoginUser(req *models.UserLoginRequest) (*models.LoginResp
 	avatar := user.Avatar
 	if avatar == "" {
 		if user.Gender == "女" {
-			avatar = "/static/images/avatars/female_default.png"
+			avatar = "/static/images/avatars/2.jpg"
 		} else {
-			avatar = "/static/images/avatars/male_default.png"
+			avatar = "/static/images/avatars/1.jpg"
 		}
 	}
 
@@ -336,9 +336,9 @@ func (s *UserService) GetUserByID(userID int) (*models.User, error) {
 	// 设置默认头像（如果为空）
 	if user.Avatar == "" {
 		if user.Gender == "女" {
-			user.Avatar = "/static/images/avatars/female_default.png"
+			user.Avatar = "/static/images/avatars/2.jpg"
 		} else {
-			user.Avatar = "/static/images/avatars/male_default.png"
+			user.Avatar = "/static/images/avatars/1.jpg"
 		}
 	}
 
