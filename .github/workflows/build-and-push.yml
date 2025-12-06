@@ -79,18 +79,10 @@ jobs:
       uses: actions/github-script@v7
       with:
         script: |
-          // 获取当前工作流的ID
-          const workflow = await github.rest.actions.getWorkflow({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            workflow_id: context.workflow
-          });
-          
-          // 获取工作流运行列表
+          // 修复：使用listWorkflowRuns获取所有运行，不依赖特定工作流ID
           const runs = await github.rest.actions.listWorkflowRuns({
             owner: context.repo.owner,
             repo: context.repo.repo,
-            workflow_id: workflow.data.id,
             per_page: 100
           });
           
