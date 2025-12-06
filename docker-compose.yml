@@ -1,12 +1,17 @@
 version: '3.8'
 
+# 定义项目名称，用于Docker Compose
+name: ${APP_NAME:-jiceng-sanji-exam}
+
 services:
   # 应用程序服务
-  app:
+  ${APP_NAME:-app}:
     image: ghcr.io/hangbin2008/sanjicms:latest
     ports:
       - "${SERVER_PORT:-8080}:${SERVER_PORT:-8080}"
     environment:
+      # 应用配置
+      - APP_NAME=${APP_NAME:-jiceng-sanji-exam}
       # 服务器配置
       - SERVER_HOST=${SERVER_HOST:-0.0.0.0}
       - SERVER_PORT=${SERVER_PORT:-8080}
@@ -15,7 +20,7 @@ services:
       - DB_PORT=${DB_PORT:-3306}
       - DB_USER=${DB_USER:-root}
       - DB_PASSWORD=${DB_PASSWORD:-your-db-password}
-      - DB_NAME=${DB_NAME:-jiceng_sanji_exam}
+      - DB_NAME=${DB_NAME:-${APP_NAME:-jiceng_sanji_exam}}
       - DB_CHARSET=${DB_CHARSET:-utf8mb4}
       # JWT配置
       - JWT_SECRET=${JWT_SECRET:-your-jwt-secret-key}
@@ -26,25 +31,29 @@ services:
       - PASSWORD_REQUIRE_DIGIT=${PASSWORD_REQUIRE_DIGIT:-true}
       - PASSWORD_REQUIRE_SPECIAL=${PASSWORD_REQUIRE_SPECIAL:-true}
     depends_on:
-      - db
+      - ${DB_SERVICE_NAME:-db}
     restart: always
+    # 容器名称
+    container_name: ${APP_NAME:-jiceng-sanji-exam}-app
 
   # MySQL数据库服务
-  db:
+  ${DB_SERVICE_NAME:-db}:
     image: mysql:5.7
     ports:
       - "${DB_PORT:-3306}:3306"
     environment:
       - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-your-db-password}
-      - MYSQL_DATABASE=${DB_NAME:-jiceng_sanji_exam}
+      - MYSQL_DATABASE=${DB_NAME:-${APP_NAME:-jiceng_sanji_exam}}
       - MYSQL_CHARSET=${DB_CHARSET:-utf8mb4}
       - MYSQL_COLLATION=utf8mb4_unicode_ci
     volumes:
       # 挂载数据库数据目录
-      - db_data:/var/lib/mysql
+      - ${APP_NAME:-jiceng-sanji-exam}-db_data:/var/lib/mysql
       # 挂载初始化脚本
       - ./migrations:/docker-entrypoint-initdb.d
     restart: always
+    # 容器名称
+    container_name: ${APP_NAME:-jiceng-sanji-exam}-db
 
 volumes:
-  db_data:
+  ${APP_NAME:-jiceng-sanji-exam}-db_data:

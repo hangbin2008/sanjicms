@@ -7,10 +7,15 @@ import (
 )
 
 type Config struct {
+	App      AppConfig
 	Server   ServerConfig
 	Database DatabaseConfig
 	JWT      JWTConfig
 	Password PasswordConfig
+}
+
+type AppConfig struct {
+	Name string
 }
 
 type ServerConfig struct {
@@ -35,14 +40,17 @@ type JWTConfig struct {
 }
 
 type PasswordConfig struct {
-	MinLength    int
-	RequireLetter bool
-	RequireDigit  bool
+	MinLength      int
+	RequireLetter  bool
+	RequireDigit   bool
 	RequireSpecial bool
 }
 
 func Load() (*Config, error) {
 	config := &Config{}
+
+	// App config
+	config.App.Name = getEnv("APP_NAME", "jiceng-sanji-exam")
 
 	// Server config
 	config.Server.Port = getEnvAsInt("SERVER_PORT", 8080)
@@ -55,7 +63,12 @@ func Load() (*Config, error) {
 	config.Database.Port = getEnvAsInt("DB_PORT", 3306)
 	config.Database.User = getEnv("DB_USER", "root")
 	config.Database.Password = getEnv("DB_PASSWORD", "password")
-	config.Database.DBName = getEnv("DB_NAME", "jiceng_sanji_exam")
+	// 如果没有设置DB_NAME，使用APP_NAME作为数据库名称
+	if dbName := getEnv("DB_NAME", ""); dbName != "" {
+		config.Database.DBName = dbName
+	} else {
+		config.Database.DBName = config.App.Name
+	}
 	config.Database.Charset = getEnv("DB_CHARSET", "utf8mb4")
 
 	// JWT config
