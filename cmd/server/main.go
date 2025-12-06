@@ -106,55 +106,52 @@ func migrateDatabase() error {
 	if err == nil {
 		log.Println("直接执行脚本成功")
 	} else {
-		log.Printf("直接执行脚本失败: %v，尝试逐行执行...\n", err)
+		log.Printf("直接执行脚本失败: %v，尝试按语句执行...\n", err)
 
-		// 尝试2: 按\n分割并跳过空行和注释
-		lines := strings.Split(string(content), "\n")
-		var currentStmt strings.Builder
-		lineErrors := 0
+		// 尝试2: 按语句执行，正确处理跨多行的SQL语句
+		// 将脚本按";"分割成多个语句
+		statements := strings.Split(string(content), ";")
+		stmtErrors := 0
 
-		for i, line := range lines {
-			line = strings.TrimSpace(line)
+		for i, stmt := range statements {
+			// 清理语句：移除注释和空白字符
+			lines := strings.Split(stmt, "\n")
+			var cleanedStmt strings.Builder
 
-			// 跳过空行和注释
-			if line == "" || strings.HasPrefix(line, "--") {
+			for _, line := range lines {
+				line = strings.TrimSpace(line)
+				// 跳过空行和注释
+				if line == "" || strings.HasPrefix(line, "--") {
+					continue
+				}
+				cleanedStmt.WriteString(line)
+				cleanedStmt.WriteString(" ")
+			}
+
+			// 再次清理，确保语句不为空
+			finalStmt := strings.TrimSpace(cleanedStmt.String())
+			if finalStmt == "" {
 				continue
 			}
 
-			// 添加到当前语句
-			currentStmt.WriteString(line)
-			currentStmt.WriteString(" ")
+			// 添加分号
+			finalStmt += ";"
 
-			// 如果遇到分号，执行语句
-			if strings.HasSuffix(strings.TrimSpace(line), ";") {
-				stmt := currentStmt.String()
-				currentStmt.Reset()
-
-				if _, err := db.DB.Exec(stmt); err != nil {
-					log.Printf("执行语句第 %d 行失败: %v\n语句: %s\n", i+1, err, stmt)
-					lineErrors++
-				} else {
-					log.Printf("执行语句第 %d 行成功\n", i+1)
-				}
-			}
-		}
-
-		// 执行最后一个语句（如果有）
-		if currentStmt.Len() > 0 {
-			stmt := currentStmt.String()
-			if _, err := db.DB.Exec(stmt); err != nil {
-				log.Printf("执行最后一个语句失败: %v\n语句: %s\n", err, stmt)
-				lineErrors++
+			// 执行语句
+			if _, err := db.DB.Exec(finalStmt); err != nil {
+				log.Printf("执行语句 %d 失败: %v\n语句: %s\n", i+1, err, finalStmt)
+				stmtErrors++
 			} else {
-				log.Println("执行最后一个语句成功")
+				log.Printf("执行语句 %d 成功\n", i+1)
 			}
 		}
 
-		// 只有当没有行错误时，才认为迁移成功
-		if lineErrors == 0 {
-			log.Println("逐行执行脚本成功")
+		// 只有当没有语句错误时，才认为迁移成功
+		if stmtErrors == 0 {
+			log.Println("按语句执行脚本成功")
 		} else {
-			log.Printf("逐行执行脚本失败，共 %d 个错误\n", lineErrors)
+			log.Printf("按语句执行脚本失败，共 %d 个错误\n", stmtErrors)
+			// 不要返回错误，继续执行，因为users表可能已经创建成功
 		}
 	}
 
