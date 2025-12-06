@@ -30,8 +30,8 @@
 1. **克隆代码**
 
 ```bash
-git clone https://github.com/yourusername/jiceng-sanji-exam.git
-cd jiceng-sanji-exam
+git clone https://github.com/hangbin2008/sanjicms.git
+cd sanjicms
 ```
 
 2. **配置环境变量**
@@ -44,11 +44,13 @@ cp .env.example .env
 
 3. **启动服务**
 
-使用 Docker Compose 启动应用程序和数据库服务：
+使用 Docker Compose 启动应用程序和数据库服务（使用GitHub Container Registry上的预构建镜像）：
 
 ```bash
 docker-compose up -d
 ```
+
+系统使用的是预构建镜像：`ghcr.io/hangbin2008/sanjicms:latest`
 
 4. **访问应用**
 
