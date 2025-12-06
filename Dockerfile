@@ -29,8 +29,8 @@ RUN mkdir -p ./static
 # 复制static目录内容（如果存在）
 COPY --from=builder /app/static/* ./static/
 COPY --from=builder /app/migrations ./migrations
-# 复制.env文件
-COPY --from=builder /app/.env ./
+# .env文件不应该在构建上下文中，由运行时提供
+# 如果需要默认配置，可以创建一个.env.example文件，然后在启动时复制
 
 # 设置环境变量
 ENV GIN_MODE=release
