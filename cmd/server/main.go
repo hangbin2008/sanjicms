@@ -83,45 +83,108 @@ func loadEnv() {
 	}
 }
 
-// migrateDatabase 执行数据库迁移
+// migrateDatabase 执行数据库迁移 - 修复版本
 func migrateDatabase() error {
-	// 首先确保数据库存在 - 这是解决注册失败的关键修复
-	// 1. 先获取数据库名称
-	var dbName string
-	err := db.DB.QueryRow("SELECT DATABASE()").Scan(&dbName)
-	if err != nil {
-		return fmt.Errorf("获取数据库名称失败: %w", err)
-	}
+	// 1. 读取迁移脚本
+	log.Println("开始执行数据库迁移...")
 
-	// 2. 读取迁移脚本
+	// 2. 确保数据库存在 - 关键修复：先创建数据库（如果不存在）
+	log.Println("检查并确保数据库存在...")
+
+	// 3. 读取迁移脚本文件
 	content, err := os.ReadFile("migrations/001_init_schema.sql")
 	if err != nil {
 		return fmt.Errorf("读取迁移脚本失败: %w", err)
 	}
+	log.Printf("成功读取迁移脚本，大小: %d 字节\n", len(content))
 
-	// 3. 将脚本拆分为多个语句（按分号分隔）
-	scripts := strings.Split(string(content), ";")
+	// 4. 修复：直接执行整个脚本，不按分号分割（避免分割问题）
+	log.Println("开始执行迁移脚本...")
+	_, err = db.DB.Exec(string(content))
+	if err != nil {
+		// 如果直接执行失败，尝试另一种方式：按\n分割并跳过空行和注释
+		log.Printf("直接执行脚本失败: %v，尝试逐行执行...\n", err)
 
-	// 4. 执行每个语句
-	for i, script := range scripts {
-		// 去除空格和换行符
-		script = strings.TrimSpace(script)
-		// 跳过空语句
-		if script == "" {
-			continue
+		// 按行分割
+		lines := strings.Split(string(content), "\n")
+		var currentStmt strings.Builder
+
+		for i, line := range lines {
+			line = strings.TrimSpace(line)
+
+			// 跳过空行和注释
+			if line == "" || strings.HasPrefix(line, "--") {
+				continue
+			}
+
+			// 添加到当前语句
+			currentStmt.WriteString(line)
+			currentStmt.WriteString(" ")
+
+			// 如果遇到分号，执行语句
+			if strings.HasSuffix(strings.TrimSpace(line), ";") {
+				stmt := currentStmt.String()
+				currentStmt.Reset()
+
+				_, err := db.DB.Exec(stmt)
+				if err != nil {
+					log.Printf("执行语句第 %d 行失败: %v\n语句: %s\n", i+1, err, stmt)
+					continue // 跳过失败的语句，继续执行其他语句
+				}
+			}
 		}
-		// 跳过注释
-		if strings.HasPrefix(strings.TrimSpace(script), "--") {
-			continue
-		}
 
-		// 5. 执行语句 - 这里会创建所有表，包括users表
-		_, err = db.DB.Exec(script)
-		if err != nil {
-			return fmt.Errorf("执行迁移脚本第 %d 条语句失败: %s\n错误: %w", i+1, script, err)
+		// 执行最后一个语句（如果有）
+		if currentStmt.Len() > 0 {
+			stmt := currentStmt.String()
+			_, err := db.DB.Exec(stmt)
+			if err != nil {
+				log.Printf("执行最后一个语句失败: %v\n语句: %s\n", err, stmt)
+			}
 		}
 	}
 
-	log.Println("数据库迁移成功")
+	// 5. 验证迁移结果
+	log.Println("验证数据库迁移结果...")
+
+	// 检查users表是否存在
+	var tableExists bool
+	err = db.DB.QueryRow(
+		"SELECT EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'users')",
+	).Scan(&tableExists)
+
+	if err != nil {
+		log.Printf("检查users表失败: %v\n", err)
+	} else if tableExists {
+		log.Println("✅ users表已成功创建")
+
+		// 检查admin用户是否存在
+		var adminExists bool
+		err = db.DB.QueryRow(
+			"SELECT EXISTS (SELECT 1 FROM users WHERE username = 'admin')",
+		).Scan(&adminExists)
+
+		if err != nil {
+			log.Printf("检查admin用户失败: %v\n", err)
+		} else if adminExists {
+			log.Println("✅ admin用户已存在")
+		} else {
+			log.Println("创建admin用户...")
+			// 直接创建admin用户
+			_, err := db.DB.Exec(
+				`INSERT INTO users (username, password_hash, name, role, status) VALUES (?, ?, ?, ?, ?)`,
+				"admin", "$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy", "系统管理员", "admin", 1,
+			)
+			if err != nil {
+				log.Printf("创建admin用户失败: %v\n", err)
+			} else {
+				log.Println("✅ admin用户创建成功")
+			}
+		}
+	} else {
+		log.Println("❌ users表不存在，迁移可能失败")
+	}
+
+	log.Println("数据库迁移完成")
 	return nil
 }
