@@ -2,27 +2,38 @@
 -- 创建用户表
 CREATE TABLE IF NOT EXISTS users (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    username VARCHAR(50) UNIQUE NOT NULL, -- 用户名，手机号或身份证号
+    username VARCHAR(50) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    name VARCHAR(50) NOT NULL, -- 姓名，只能是中文
-    role VARCHAR(20) NOT NULL DEFAULT 'employee', -- 角色：admin（站长）、manager（管理员）、employee（员工/考生）
-    phone VARCHAR(20) UNIQUE, -- 手机号
-    id_card VARCHAR(18) UNIQUE, -- 身份证号
-    department VARCHAR(100), -- 部门
-    job_title VARCHAR(50), -- 职称
-    avatar VARCHAR(255), -- 头像URL
-    status TINYINT DEFAULT 1, -- 状态：1-启用，0-禁用
+    name VARCHAR(50) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'employee',
+    phone VARCHAR(20) UNIQUE,
+    id_card VARCHAR(18) UNIQUE,
+    department VARCHAR(100),
+    job_title VARCHAR(50),
+    avatar VARCHAR(255),
+    status TINYINT DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- 注释：
+-- username: 用户名，手机号或身份证号
+-- name: 姓名，只能是中文
+-- role: 角色：admin（站长）、manager（管理员）、employee（员工/考生）
+-- phone: 手机号
+-- id_card: 身份证号
+-- department: 部门
+-- job_title: 职称
+-- avatar: 头像URL
+-- status: 状态：1-启用，0-禁用
+
 -- 创建题库表
 CREATE TABLE IF NOT EXISTS question_banks (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(100) NOT NULL, -- 题库名称
-    description TEXT, -- 题库描述
-    subject VARCHAR(50) NOT NULL, -- 科目：基础知识、基本技能、专业知识、专业实践技能
-    created_by INT NOT NULL, -- 创建人ID
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    subject VARCHAR(50) NOT NULL,
+    created_by INT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
@@ -31,15 +42,15 @@ CREATE TABLE IF NOT EXISTS question_banks (
 -- 创建题目表
 CREATE TABLE IF NOT EXISTS questions (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    bank_id INT NOT NULL, -- 所属题库ID
-    type VARCHAR(20) NOT NULL, -- 题目类型：single（单选题）、multiple（多选题）、judgment（判断题）、essay（简答题）
-    content TEXT NOT NULL, -- 题目内容
-    options TEXT, -- 选项，JSON格式存储
-    answer TEXT NOT NULL, -- 答案
-    score FLOAT NOT NULL, -- 分值
-    difficulty VARCHAR(20) DEFAULT 'medium', -- 难度：easy（简单）、medium（中等）、hard（困难）
-    analysis TEXT, -- 解析
-    created_by INT NOT NULL, -- 创建人ID
+    bank_id INT NOT NULL,
+    type VARCHAR(20) NOT NULL,
+    content TEXT NOT NULL,
+    options TEXT,
+    answer TEXT NOT NULL,
+    score FLOAT NOT NULL,
+    difficulty VARCHAR(20) DEFAULT 'medium',
+    analysis TEXT,
+    created_by INT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (bank_id) REFERENCES question_banks(id) ON DELETE CASCADE,
@@ -49,15 +60,15 @@ CREATE TABLE IF NOT EXISTS questions (
 -- 创建试卷表
 CREATE TABLE IF NOT EXISTS exams (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    title VARCHAR(100) NOT NULL, -- 试卷标题
-    description TEXT, -- 试卷描述
-    subject VARCHAR(50) NOT NULL, -- 科目
-    total_score FLOAT NOT NULL, -- 总分
-    duration INT NOT NULL, -- 考试时长（分钟）
-    start_time DATETIME, -- 开始时间
-    end_time DATETIME, -- 结束时间
-    status VARCHAR(20) DEFAULT 'draft', -- 状态：draft（草稿）、published（已发布）、completed（已结束）
-    created_by INT NOT NULL, -- 创建人ID
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    subject VARCHAR(50) NOT NULL,
+    total_score FLOAT NOT NULL,
+    duration INT NOT NULL,
+    start_time DATETIME,
+    end_time DATETIME,
+    status VARCHAR(20) DEFAULT 'draft',
+    created_by INT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
@@ -65,9 +76,9 @@ CREATE TABLE IF NOT EXISTS exams (
 
 -- 创建试卷题目关联表
 CREATE TABLE IF NOT EXISTS exam_questions (
-    exam_id INT NOT NULL, -- 试卷ID
-    question_id INT NOT NULL, -- 题目ID
-    sequence INT NOT NULL, -- 题目顺序
+    exam_id INT NOT NULL,
+    question_id INT NOT NULL,
+    sequence INT NOT NULL,
     PRIMARY KEY (exam_id, question_id),
     FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
@@ -76,13 +87,13 @@ CREATE TABLE IF NOT EXISTS exam_questions (
 -- 创建考生答卷表
 CREATE TABLE IF NOT EXISTS exam_records (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    exam_id INT NOT NULL, -- 试卷ID
-    user_id INT NOT NULL, -- 考生ID
-    start_time DATETIME DEFAULT CURRENT_TIMESTAMP, -- 开始答题时间
-    end_time DATETIME, -- 结束答题时间
-    duration INT, -- 实际答题时长（秒）
-    total_score FLOAT DEFAULT 0, -- 总分
-    status VARCHAR(20) DEFAULT 'ongoing', -- 状态：ongoing（进行中）、submitted（已提交）、graded（已评分）
+    exam_id INT NOT NULL,
+    user_id INT NOT NULL,
+    start_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+    end_time DATETIME,
+    duration INT,
+    total_score FLOAT DEFAULT 0,
+    status VARCHAR(20) DEFAULT 'ongoing',
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE,
@@ -92,11 +103,11 @@ CREATE TABLE IF NOT EXISTS exam_records (
 -- 创建考生答题表
 CREATE TABLE IF NOT EXISTS exam_answers (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    record_id INT NOT NULL, -- 答卷ID
-    question_id INT NOT NULL, -- 题目ID
-    user_answer TEXT NOT NULL, -- 考生答案
-    score FLOAT DEFAULT 0, -- 得分
-    is_correct TINYINT DEFAULT 0, -- 是否正确：1-正确，0-错误
+    record_id INT NOT NULL,
+    question_id INT NOT NULL,
+    user_answer TEXT NOT NULL,
+    score FLOAT DEFAULT 0,
+    is_correct TINYINT DEFAULT 0,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (record_id) REFERENCES exam_records(id) ON DELETE CASCADE,
     FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE
@@ -105,15 +116,21 @@ CREATE TABLE IF NOT EXISTS exam_answers (
 -- 创建系统配置表
 CREATE TABLE IF NOT EXISTS system_configs (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    key_name VARCHAR(50) UNIQUE NOT NULL, -- 配置键
-    value TEXT NOT NULL, -- 配置值
-    description VARCHAR(200), -- 配置描述
+    key_name VARCHAR(50) UNIQUE NOT NULL,
+    value TEXT NOT NULL,
+    description VARCHAR(200),
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
 -- 插入初始数据
--- 插入系统配置
+
+-- 1. 先插入初始用户（站长）- 确保用户数据在其他依赖表之前插入
+-- 密码：Admin@123
+INSERT IGNORE INTO users (username, password_hash, name, role, status) VALUES
+('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '系统管理员', 'admin', 1);
+
+-- 2. 插入系统配置
 INSERT IGNORE INTO system_configs (key_name, value, description) VALUES
 ('jwt_secret', 'FP0bnaIYdagkRFNlPEdjQHb7RfNaGMuDF3DLjKtI4zE=', 'JWT签名密钥'),
 ('password_min_length', '8', '密码最小长度'),
@@ -122,14 +139,8 @@ INSERT IGNORE INTO system_configs (key_name, value, description) VALUES
 ('password_require_special', '1', '密码必须包含特殊字符'),
 ('exam_auto_grade', '1', '是否自动评分');
 
--- 插入额外的系统配置，用于支持动态配置
+-- 3. 插入额外的系统配置，用于支持动态配置
 INSERT IGNORE INTO system_configs (key_name, value, description) VALUES
 ('server_port', '8080', '服务器端口'),
 ('db_host', 'db', '数据库主机'),
 ('db_port', '3306', '数据库端口');
-
-
--- 插入初始用户（站长）
-INSERT IGNORE INTO users (username, password_hash, name, role, status) VALUES
-('admin', '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy', '系统管理员', 'admin', 1);
--- 密码：Admin@123
