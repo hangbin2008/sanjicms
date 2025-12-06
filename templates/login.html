@@ -108,6 +108,14 @@
                 <label for="password">密码</label>
                 <input type="password" id="password" name="password" placeholder="请输入密码" required>
             </div>
+            <div class="form-group">
+                <label for="captcha">验证码</label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="captcha" name="captcha" placeholder="请输入验证码" required style="flex: 1;">
+                    <img id="captcha-image" src="" alt="验证码" style="width: 120px; height: 40px; cursor: pointer; border: 1px solid #ddd; border-radius: 4px;" onclick="refreshCaptcha()">
+                </div>
+            </div>
+            <input type="hidden" id="captcha-id" name="captcha_id">
             <button type="submit" class="btn">登录</button>
         </form>
         
@@ -117,11 +125,38 @@
     </div>
 
     <script>
+        // 页面加载时生成验证码
+        window.onload = function() {
+            refreshCaptcha();
+        };
+
+        // 刷新验证码
+        function refreshCaptcha() {
+            fetch('/api/captcha')
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                // 更新验证码图片和ID
+                document.getElementById('captcha-image').src = 'data:image/png;base64,' + data.data.captcha_image;
+                document.getElementById('captcha-id').value = data.data.captcha_id;
+            })
+            .catch(error => {
+                console.error('获取验证码失败:', error);
+                alert('获取验证码失败，请稍后重试');
+            });
+        }
+
+        // 登录表单提交
         document.getElementById('login-form').addEventListener('submit', function(e) {
             e.preventDefault();
             
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
+            const captcha = document.getElementById('captcha').value;
+            const captchaId = document.getElementById('captcha-id').value;
             
             fetch('/api/login', {
                 method: 'POST',
@@ -130,13 +165,19 @@
                 },
                 body: JSON.stringify({
                     username: username,
-                    password: password
+                    password: password,
+                    captcha: captcha,
+                    captcha_id: captchaId
                 })
             })
             .then(response => response.json())
             .then(data => {
                 if (data.error) {
                     alert(data.error);
+                    // 验证码错误时刷新验证码
+                    if (data.error.includes('验证码')) {
+                        refreshCaptcha();
+                    }
                 } else {
                     // 保存token到本地存储
                     localStorage.setItem('token', data.data.token);

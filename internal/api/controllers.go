@@ -14,6 +14,7 @@ type Controllers struct {
 	userService     *service.UserService
 	questionService *service.QuestionService
 	examService     *service.ExamService
+	captchaService  *service.CaptchaService
 }
 
 // NewControllers 创建API控制器
@@ -21,11 +22,13 @@ func NewControllers(
 	userService *service.UserService,
 	questionService *service.QuestionService,
 	examService *service.ExamService,
+	captchaService *service.CaptchaService,
 ) *Controllers {
 	return &Controllers{
 		userService:     userService,
 		questionService: questionService,
 		examService:     examService,
+		captchaService:  captchaService,
 	}
 }
 
@@ -60,11 +63,34 @@ func (c *Controllers) Register(ctx *gin.Context) {
 	})
 }
 
+// GenerateCaptcha 生成验证码
+func (c *Controllers) GenerateCaptcha(ctx *gin.Context) {
+	id, b64s, err := c.captchaService.GenerateCaptcha()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "生成验证码失败"})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "生成验证码成功",
+		"data": gin.H{
+			"captcha_id":    id,
+			"captcha_image": b64s,
+		},
+	})
+}
+
 // Login 用户登录
 func (c *Controllers) Login(ctx *gin.Context) {
 	var req models.UserLoginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 验证验证码
+	if !c.captchaService.VerifyCaptcha(req.CaptchaID, req.Captcha) {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "验证码错误"})
 		return
 	}
 

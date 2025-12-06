@@ -39,9 +39,10 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	userService := service.NewUserService(cfg, jwtConfig)
 	questionService := service.NewQuestionService()
 	examService := service.NewExamService(questionService)
+	captchaService := service.NewCaptchaService()
 
 	// 创建控制器实例
-	controllers := NewControllers(userService, questionService, examService)
+	controllers := NewControllers(userService, questionService, examService, captchaService)
 
 	// 健康检查路由 - 只有站长可以访问
 	router.GET("/health", middleware.RoleAuth("admin"), func(c *gin.Context) {
@@ -54,6 +55,8 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	// 公共路由组
 	public := router.Group("/api")
 	{
+		// 验证码路由
+		public.GET("/captcha", controllers.GenerateCaptcha)
 		// 用户认证路由
 		public.POST("/register", controllers.Register)
 		public.POST("/login", controllers.Login)
