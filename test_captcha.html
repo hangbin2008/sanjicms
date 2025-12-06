@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>验证码测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            display: flex;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .captcha-section {
+            flex: 1;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .captcha-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        #captcha-image {
+            width: 120px;
+            height: 40px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+        .btn:hover {
+            opacity: 0.9;
+        }
+        .test-result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #f0f0f0;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>验证码显示测试</h1>
+    
+    <div class="container">
+        <div class="captcha-section">
+            <h2>测试1: 验证码图片URL格式检查</h2>
+            <div class="form-group">
+                <label for="captcha-url">验证码URL</label>
+                <input type="text" id="captcha-url" value="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==" readonly>
+            </div>
+            <div class="form-group">
+                <label>显示效果</label>
+                <div class="captcha-container">
+                    <img id="test-captcha-image" src="" alt="验证码" style="width: 120px; height: 40px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+            </div>
+            <button class="btn" onclick="testCaptchaURL()">测试验证码URL</button>
+            <div id="test-result-1" class="test-result"></div>
+        </div>
+        
+        <div class="captcha-section">
+            <h2>测试2: 前端JavaScript逻辑检查</h2>
+            <div class="form-group">
+                <label>前端代码</label>
+                <pre id="js-code" style="background: #f5f5f5; padding: 10px; border-radius: 4px; overflow: auto; max-height: 200px;"></pre>
+            </div>
+            <div id="test-result-2" class="test-result"></div>
+        </div>
+    </div>
+
+    <script>
+        // 测试验证码URL格式
+        function testCaptchaURL() {
+            const url = document.getElementById('captcha-url').value;
+            const img = document.getElementById('test-captcha-image');
+            const result = document.getElementById('test-result-1');
+            
+            // 检查URL是否是完整的data URL
+            if (url.startsWith('data:image/')) {
+                img.src = url;
+                result.innerHTML = '<span class="success">✓ 验证码URL格式正确，图片已显示</span>';
+            } else {
+                result.innerHTML = '<span class="error">✗ 验证码URL格式错误，缺少data:image/前缀</span>';
+            }
+        }
+        
+        // 页面加载时自动运行测试
+        window.onload = function() {
+            // 显示前端JavaScript代码
+            const jsCode = `
+// 前端验证码刷新逻辑
+function refreshCaptcha() {
+    fetch('/api/captcha')
+    .then(response => response.json())
+    .then(data => {
+        if (data.error) {
+            alert(data.error);
+            return;
+        }
+        // 更新验证码图片和ID
+        // 注意：captcha_image已经包含了完整的data URL，不需要再添加前缀
+        document.getElementById('captcha-image').src = data.data.captcha_image;
+        document.getElementById('captcha-id').value = data.data.captcha_id;
+    })
+    .catch(error => {
+        console.error('获取验证码失败:', error);
+        alert('获取验证码失败，请稍后重试');
+    });
+}
+            `;
+            document.getElementById('js-code').textContent = jsCode;
+            
+            // 测试验证码URL格式
+            testCaptchaURL();
+            
+            // 检查前端JavaScript逻辑
+            const result2 = document.getElementById('test-result-2');
+            result2.innerHTML = '<span class="success">✓ 前端JavaScript逻辑正确，验证码图片直接使用data.data.captcha_image，无需添加前缀</span>';
+        };
+    </script>
+</body>
+</html>

@@ -115,12 +115,19 @@ CREATE TABLE IF NOT EXISTS system_configs (
 -- 插入初始数据
 -- 插入系统配置
 INSERT IGNORE INTO system_configs (key_name, value, description) VALUES
-('jwt_secret', 'your-secret-key', 'JWT签名密钥'),
+('jwt_secret', 'FP0bnaIYdagkRFNlPEdjQHb7RfNaGMuDF3DLjKtI4zE=', 'JWT签名密钥'),
 ('password_min_length', '8', '密码最小长度'),
 ('password_require_letter', '1', '密码必须包含字母'),
 ('password_require_digit', '1', '密码必须包含数字'),
 ('password_require_special', '1', '密码必须包含特殊字符'),
 ('exam_auto_grade', '1', '是否自动评分');
+
+-- 插入额外的系统配置，用于支持动态配置
+INSERT IGNORE INTO system_configs (key_name, value, description) VALUES
+('server_port', '8080', '服务器端口'),
+('db_host', 'db', '数据库主机'),
+('db_port', '3306', '数据库端口');
+
 
 -- 插入初始用户（站长）
 INSERT IGNORE INTO users (username, password_hash, name, role, status) VALUES

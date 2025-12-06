@@ -140,7 +140,8 @@
                     return;
                 }
                 // 更新验证码图片和ID
-                document.getElementById('captcha-image').src = 'data:image/png;base64,' + data.data.captcha_image;
+                // 注意：captcha_image已经包含了完整的data URL，不需要再添加前缀
+                document.getElementById('captcha-image').src = data.data.captcha_image;
                 document.getElementById('captcha-id').value = data.data.captcha_id;
             })
             .catch(error => {

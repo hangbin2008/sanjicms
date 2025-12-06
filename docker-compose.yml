@@ -42,8 +42,8 @@ services:
     ports:
       - "${DB_PORT:-3306}:3306"
     environment:
-      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-your-db-password}
-      - MYSQL_DATABASE=${DB_NAME:-${APP_NAME:-jiceng_sanji_exam}}
+      - MYSQL_ROOT_PASSWORD=${DB_PASSWORD:-123456}
+      - MYSQL_DATABASE=${DB_NAME:-${APP_NAME:-sanjicms}}
       - MYSQL_CHARSET=${DB_CHARSET:-utf8mb4}
       - MYSQL_COLLATION=utf8mb4_unicode_ci
     volumes:
