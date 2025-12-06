@@ -18,6 +18,15 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 	// 设置模板引擎
 	router.LoadHTMLGlob("./templates/*")
 
+	// 调试：检查模板文件是否存在
+	// 注意：这行代码会在生产环境中产生日志，可以根据需要保留或删除
+	router.GET("/debug/templates", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "模板文件加载配置",
+			"pattern": "./templates/*",
+		})
+	})
+
 	// 创建JWT中间件
 	jwtConfig := middleware.NewJWTConfig(cfg)
 

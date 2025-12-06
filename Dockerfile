@@ -24,6 +24,7 @@ WORKDIR /app
 # 复制必要的文件
 COPY --from=builder /app/main .
 COPY --from=builder /app/templates ./templates
+COPY --from=builder /app/static ./static
 COPY --from=builder /app/migrations ./migrations
 
 # 设置环境变量
