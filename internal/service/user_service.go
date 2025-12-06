@@ -163,10 +163,13 @@ func (s *UserService) RegisterUser(req *models.UserRegisterRequest) (*models.Use
 		return nil, err
 	}
 
-	// 查询插入的用户信息
+	// 查询插入的用户信息 - 使用COALESCE处理可能为NULL的字段
 	var user models.User
 	err = db.DB.QueryRow(`
-		SELECT id, username, name, role, phone, id_card, department, job_title, avatar, status, created_at, updated_at
+		SELECT id, username, name, role, 
+		       COALESCE(phone, ''), COALESCE(id_card, ''), 
+		       COALESCE(department, ''), COALESCE(job_title, ''), 
+		       COALESCE(avatar, ''), status, created_at, updated_at
 		FROM users WHERE id = ?
 	`, userID).Scan(
 		&user.ID, &user.Username, &user.Name, &user.Role, &user.Phone, &user.IDCard,
@@ -181,10 +184,13 @@ func (s *UserService) RegisterUser(req *models.UserRegisterRequest) (*models.Use
 
 // LoginUser 用户登录
 func (s *UserService) LoginUser(req *models.UserLoginRequest) (*models.LoginResponse, error) {
-	// 查询用户 - 使用更健壮的查询方式
+	// 查询用户 - 使用COALESCE处理可能为NULL的字段
 	var user models.User
 	query := `
-		SELECT id, username, password_hash, name, role, phone, id_card, department, job_title, avatar, status, created_at, updated_at
+		SELECT id, username, password_hash, name, role, 
+		       COALESCE(phone, ''), COALESCE(id_card, ''), 
+		       COALESCE(department, ''), COALESCE(job_title, ''), 
+		       COALESCE(avatar, ''), status, created_at, updated_at
 		FROM users WHERE username = ?
 	`
 	err := db.DB.QueryRow(query, req.Username).Scan(
@@ -228,9 +234,16 @@ func (s *UserService) LoginUser(req *models.UserLoginRequest) (*models.LoginResp
 			rowsAffected, _ := result.RowsAffected()
 			log.Printf("插入admin用户影响行数: %d\n", rowsAffected)
 
-			// 再次查询admin用户
+			// 再次查询admin用户 - 使用带COALESCE的查询
 			log.Println("再次查询admin用户...")
-			err = db.DB.QueryRow(query, "admin").Scan(
+			adminQuery := `
+				SELECT id, username, password_hash, name, role, 
+				       COALESCE(phone, ''), COALESCE(id_card, ''), 
+				       COALESCE(department, ''), COALESCE(job_title, ''), 
+				       COALESCE(avatar, ''), status, created_at, updated_at
+				FROM users WHERE username = ?
+			`
+			err = db.DB.QueryRow(adminQuery, "admin").Scan(
 				&user.ID, &user.Username, &user.PasswordHash, &user.Name, &user.Role, &user.Phone, &user.IDCard,
 				&user.Department, &user.JobTitle, &user.Avatar, &user.Status, &user.CreatedAt, &user.UpdatedAt,
 			)
@@ -297,7 +310,10 @@ func (s *UserService) LoginUser(req *models.UserLoginRequest) (*models.LoginResp
 func (s *UserService) GetUserByID(userID int) (*models.User, error) {
 	var user models.User
 	err := db.DB.QueryRow(`
-		SELECT id, username, name, role, phone, id_card, department, job_title, avatar, status, created_at, updated_at
+		SELECT id, username, name, role, 
+		       COALESCE(phone, ''), COALESCE(id_card, ''), 
+		       COALESCE(department, ''), COALESCE(job_title, ''), 
+		       COALESCE(avatar, ''), status, created_at, updated_at
 		FROM users WHERE id = ?
 	`, userID).Scan(
 		&user.ID, &user.Username, &user.Name, &user.Role, &user.Phone, &user.IDCard,
