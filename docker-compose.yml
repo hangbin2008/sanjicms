@@ -47,4 +47,4 @@ services:
     restart: always
 
 volumes:
-  # 数据库数据
+  db_data:
