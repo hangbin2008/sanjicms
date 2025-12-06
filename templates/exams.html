@@ -239,6 +239,19 @@
             background-color: rgba(0, 0, 0, 0.5);
             overflow: auto;
         }
+        
+        /* 倒计时脉冲动画 */
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
 
         .modal-content {
             background-color: white;
@@ -426,6 +439,10 @@
                                 <span>{{.StartTime.Format "2006-01-02 15:04"}}</span>
                             </div>
                             <div class="exam-info-item">
+                                <i>⏳</i>
+                                <span id="countdown-{{.ID}}" class="countdown"></span>
+                            </div>
+                            <div class="exam-info-item">
                                 <i>⌛</i>
                                 <span>{{.Duration}}分钟</span>
                             </div>
@@ -437,6 +454,15 @@
                                 <i>📝</i>
                                 <span>{{.QuestionCount}}道题</span>
                             </div>
+                        </div>
+                        <div class="exam-notes" style="margin: 1rem 0; padding: 1rem; background: #f8f9fa; border-radius: 8px; font-size: 0.9rem;">
+                            <h5 style="margin-bottom: 0.5rem; color: #667eea; font-size: 1rem;">考试注意事项</h5>
+                            <ul style="margin: 0; padding-left: 1.5rem; color: #6c757d;">
+                                <li style="margin-bottom: 0.25rem;">请在规定时间内完成考试</li>
+                                <li style="margin-bottom: 0.25rem;">考试过程中请勿刷新页面或关闭浏览器</li>
+                                <li style="margin-bottom: 0.25rem;">每道题只能作答一次，提交后无法修改</li>
+                                <li>考试结束后将自动提交试卷</li>
+                            </ul>
                         </div>
                         <div class="exam-actions">
                             <button class="btn btn-primary" onclick="viewExamDetails({{.ID}})">查看详情</button>
@@ -608,6 +634,70 @@
         function initPage() {
             // 这里可以添加从API获取数据的逻辑
             console.log('我的考试页面初始化完成');
+            
+            // 初始化倒计时
+            initCountdowns();
+        }
+        
+        // 初始化所有倒计时
+        function initCountdowns() {
+            // 获取所有倒计时元素
+            const countdownElements = document.querySelectorAll('.countdown');
+            
+            countdownElements.forEach(element => {
+                const examId = element.id.replace('countdown-', '');
+                // 实际项目中，这里会从API获取考试的开始时间
+                // 现在使用模拟数据
+                const exam = upcomingExams.find(e => e.id == examId);
+                if (exam) {
+                    const startTime = new Date(exam.startTime);
+                    startCountdown(element, startTime);
+                }
+            });
+        }
+        
+        // 开始倒计时
+        function startCountdown(element, startTime) {
+            // 每秒更新一次倒计时
+            const interval = setInterval(() => {
+                const now = new Date();
+                const timeDiff = startTime - now;
+                
+                // 如果考试已经开始，停止倒计时
+                if (timeDiff <= 0) {
+                    element.textContent = '考试已开始';
+                    element.style.color = '#28a745';
+                    element.style.fontWeight = 'bold';
+                    clearInterval(interval);
+                    return;
+                }
+                
+                // 计算天、时、分、秒
+                const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+                
+                // 格式化倒计时显示
+                let countdownText = '';
+                if (days > 0) {
+                    countdownText += `${days}天 `;
+                }
+                countdownText += `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                element.textContent = countdownText;
+                
+                // 如果倒计时小于等于10分钟，添加特殊样式和提醒
+                if (timeDiff <= 10 * 60 * 1000) {
+                    element.style.color = '#dc3545';
+                    element.style.fontWeight = 'bold';
+                    element.style.animation = 'pulse 1s infinite';
+                } else {
+                    element.style.color = '#6c757d';
+                    element.style.fontWeight = 'normal';
+                    element.style.animation = 'none';
+                }
+            }, 1000);
         }
         
         // 查看考试详情

@@ -380,3 +380,38 @@ func (s *UserService) UpdateUser(userID int, req *models.UserUpdateRequest) (*mo
 	// 获取更新后的用户信息
 	return s.GetUserByID(userID)
 }
+
+// ChangePassword 修改用户密码
+func (s *UserService) ChangePassword(userID int, currentPassword, newPassword string) error {
+	// 验证新密码是否符合要求
+	if err := s.ValidatePassword(newPassword); err != nil {
+		return err
+	}
+
+	// 获取用户当前密码哈希
+	var currentHash string
+	err := db.DB.QueryRow("SELECT password_hash FROM users WHERE id = ?", userID).Scan(&currentHash)
+	if err != nil {
+		return err
+	}
+
+	// 验证当前密码是否正确
+	err = bcrypt.CompareHashAndPassword([]byte(currentHash), []byte(currentPassword))
+	if err != nil {
+		return errors.New("当前密码错误")
+	}
+
+	// 加密新密码
+	newHashedPassword, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	// 更新密码
+	_, err = db.DB.Exec("UPDATE users SET password_hash = ? WHERE id = ?", string(newHashedPassword), userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

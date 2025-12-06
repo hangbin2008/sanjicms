@@ -211,22 +211,30 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 
 	// 考试记录页面
 	router.GET("/records", func(c *gin.Context) {
-		userID, exists := c.Get("user_id")
 		userName := ""
-		if exists {
-			// 获取当前用户信息
-			user, err := userService.GetUserByID(userID.(int))
+		userAvatar := ""
+		// 从cookie中获取token
+		token, err := c.Cookie("token")
+		if err == nil && token != "" {
+			// 解析token获取用户ID
+			claims, err := jwtConfig.ParseToken(token)
 			if err == nil {
-				if user.Name != "" {
-					userName = user.Name
-				} else {
-					userName = user.Username
+				// 获取当前用户信息
+				user, err := userService.GetUserByID(claims.UserID)
+				if err == nil {
+					if user.Name != "" {
+						userName = user.Name
+					} else {
+						userName = user.Username
+					}
+					userAvatar = user.Avatar
 				}
 			}
 		}
 		c.HTML(200, "index.html", gin.H{
-			"title":    "考试记录 - 基层三基考试系统",
-			"userName": userName,
+			"title":      "考试记录 - 基层三基考试系统",
+			"userName":   userName,
+			"userAvatar": userAvatar,
 		})
 	})
 
@@ -266,139 +274,137 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 		}
 
 		c.HTML(200, "profile.html", gin.H{
-			"title":    "个人中心 - 基层三基考试系统",
-			"user":     user,
-			"userName": userName,
+			"title":      "个人中心 - 基层三基考试系统",
+			"user":       user,
+			"userName":   userName,
+			"userAvatar": user.Avatar,
+		})
+	})
+
+	// 修改密码页面
+	router.GET("/change-password", func(c *gin.Context) {
+		// 从cookie中获取token
+		token, err := c.Cookie("token")
+		if err != nil || token == "" {
+			c.Redirect(http.StatusFound, "/login")
+			return
+		}
+
+		// 解析token获取用户ID
+		claims, err := jwtConfig.ParseToken(token)
+		if err != nil {
+			c.Redirect(http.StatusFound, "/login")
+			return
+		}
+
+		// 获取当前用户信息
+		user, err := userService.GetUserByID(claims.UserID)
+		if err != nil {
+			c.HTML(200, "change-password.html", gin.H{
+				"title":    "修改密码 - 基层三基考试系统",
+				"userName": "",
+			})
+			return
+		}
+
+		userName := ""
+		if user.Name != "" {
+			userName = user.Name
+		} else {
+			userName = user.Username
+		}
+
+		c.HTML(200, "change-password.html", gin.H{
+			"title":      "修改密码 - 基层三基考试系统",
+			"userName":   userName,
+			"userAvatar": user.Avatar,
+		})
+	})
+
+	// 处理修改密码请求
+	router.POST("/change-password", func(c *gin.Context) {
+		// 从cookie中获取token
+		token, err := c.Cookie("token")
+		if err != nil || token == "" {
+			c.Redirect(http.StatusFound, "/login")
+			return
+		}
+
+		// 解析token获取用户ID
+		claims, err := jwtConfig.ParseToken(token)
+		if err != nil {
+			c.Redirect(http.StatusFound, "/login")
+			return
+		}
+
+		// 获取表单数据
+		currentPassword := c.PostForm("currentPassword")
+		newPassword := c.PostForm("newPassword")
+		confirmPassword := c.PostForm("confirmPassword")
+
+		// 验证新密码和确认密码是否一致
+		if newPassword != confirmPassword {
+			// 获取当前用户信息
+			user, _ := userService.GetUserByID(claims.UserID)
+			userName := ""
+			if user != nil && user.Name != "" {
+				userName = user.Name
+			} else if user != nil {
+				userName = user.Username
+			}
+
+			c.HTML(200, "change-password.html", gin.H{
+				"title":      "修改密码 - 基层三基考试系统",
+				"userName":   userName,
+				"userAvatar": user.Avatar,
+				"message":    "新密码和确认密码不一致",
+				"isSuccess":  false,
+			})
+			return
+		}
+
+		// 修改密码
+		err = userService.ChangePassword(claims.UserID, currentPassword, newPassword)
+		if err != nil {
+			// 获取当前用户信息
+			user, _ := userService.GetUserByID(claims.UserID)
+			userName := ""
+			if user != nil && user.Name != "" {
+				userName = user.Name
+			} else if user != nil {
+				userName = user.Username
+			}
+
+			c.HTML(200, "change-password.html", gin.H{
+				"title":      "修改密码 - 基层三基考试系统",
+				"userName":   userName,
+				"userAvatar": user.Avatar,
+				"message":    err.Error(),
+				"isSuccess":  false,
+			})
+			return
+		}
+
+		// 获取当前用户信息
+		user, _ := userService.GetUserByID(claims.UserID)
+		userName := ""
+		if user != nil && user.Name != "" {
+			userName = user.Name
+		} else if user != nil {
+			userName = user.Username
+		}
+
+		c.HTML(200, "change-password.html", gin.H{
+			"title":      "修改密码 - 基层三基考试系统",
+			"userName":   userName,
+			"userAvatar": user.Avatar,
+			"message":    "密码修改成功",
+			"isSuccess":  true,
 		})
 	})
 
 	// 模拟练习页面
 	router.GET("/practice", func(c *gin.Context) {
-		userID, exists := c.Get("user_id")
-		userName := ""
-		if exists {
-			// 获取当前用户信息
-			user, err := userService.GetUserByID(userID.(int))
-			if err == nil {
-				if user.Name != "" {
-					userName = user.Name
-				} else {
-					userName = user.Username
-				}
-			}
-		}
-		c.HTML(200, "index.html", gin.H{
-			"title":    "模拟练习 - 基层三基考试系统",
-			"userName": userName,
-		})
-	})
-
-	// 错题本页面
-	router.GET("/wrong-questions", func(c *gin.Context) {
-		userID, exists := c.Get("user_id")
-		userName := ""
-		if exists {
-			// 获取当前用户信息
-			user, err := userService.GetUserByID(userID.(int))
-			if err == nil {
-				if user.Name != "" {
-					userName = user.Name
-				} else {
-					userName = user.Username
-				}
-			}
-		}
-		c.HTML(200, "index.html", gin.H{
-			"title":    "错题本 - 基层三基考试系统",
-			"userName": userName,
-		})
-	})
-
-	// 管理员后台页面
-	router.GET("/admin", func(c *gin.Context) {
-		userID, exists := c.Get("user_id")
-		userName := ""
-		if exists {
-			// 获取当前用户信息
-			user, err := userService.GetUserByID(userID.(int))
-			if err == nil {
-				if user.Name != "" {
-					userName = user.Name
-				} else {
-					userName = user.Username
-				}
-			}
-		}
-		c.HTML(200, "index.html", gin.H{
-			"title":    "管理员后台 - 基层三基考试系统",
-			"userName": userName,
-		})
-	})
-
-	// 管理员用户列表页面
-	router.GET("/admin/users", func(c *gin.Context) {
-		userID, exists := c.Get("user_id")
-		userName := ""
-		if exists {
-			// 获取当前用户信息
-			user, err := userService.GetUserByID(userID.(int))
-			if err == nil {
-				if user.Name != "" {
-					userName = user.Name
-				} else {
-					userName = user.Username
-				}
-			}
-		}
-		// 获取用户列表数据
-		users := []models.User{}
-		// 模拟分页数据
-		currentPage := 1
-		totalPages := 1
-		pages := []int{1}
-		c.HTML(200, "admin_users.html", gin.H{
-			"title":       "用户管理 - 管理员后台",
-			"userName":    userName,
-			"users":       users,
-			"currentPage": currentPage,
-			"totalPages":  totalPages,
-			"pages":       pages,
-		})
-	})
-
-	// 考试统计页面
-	router.GET("/stats", func(c *gin.Context) {
-		userID, exists := c.Get("user_id")
-		userName := ""
-		if exists {
-			// 获取当前用户信息
-			user, err := userService.GetUserByID(userID.(int))
-			if err == nil {
-				if user.Name != "" {
-					userName = user.Name
-				} else {
-					userName = user.Username
-				}
-			}
-		}
-		// 获取考试统计数据
-		stats := gin.H{
-			"totalParticipants": 100,
-			"avgScore":          75.5,
-			"maxScore":          98,
-			"minScore":          45,
-			"passRate":          85,
-			"excellentRate":     25,
-		}
-		c.HTML(200, "stats.html", gin.H{
-			"title":    "考试统计 - 基层三基考试系统",
-			"userName": userName,
-			"stats":    stats,
-		})
-	})
-
-	// 我的考试页面
-	router.GET("/exams", func(c *gin.Context) {
 		userName := ""
 		userAvatar := ""
 		// 从cookie中获取token
@@ -419,9 +425,201 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 				}
 			}
 		}
-		// 获取考试数据
+		c.HTML(200, "index.html", gin.H{
+			"title":      "模拟练习 - 基层三基考试系统",
+			"userName":   userName,
+			"userAvatar": userAvatar,
+		})
+	})
+
+	// 错题本页面
+	router.GET("/wrong-questions", func(c *gin.Context) {
+		userName := ""
+		userAvatar := ""
+		// 从cookie中获取token
+		token, err := c.Cookie("token")
+		if err == nil && token != "" {
+			// 解析token获取用户ID
+			claims, err := jwtConfig.ParseToken(token)
+			if err == nil {
+				// 获取当前用户信息
+				user, err := userService.GetUserByID(claims.UserID)
+				if err == nil {
+					if user.Name != "" {
+						userName = user.Name
+					} else {
+						userName = user.Username
+					}
+					userAvatar = user.Avatar
+				}
+			}
+		}
+		c.HTML(200, "index.html", gin.H{
+			"title":      "错题本 - 基层三基考试系统",
+			"userName":   userName,
+			"userAvatar": userAvatar,
+		})
+	})
+
+	// 管理员后台页面
+	router.GET("/admin", func(c *gin.Context) {
+		userName := ""
+		userAvatar := ""
+		// 从cookie中获取token
+		token, err := c.Cookie("token")
+		if err == nil && token != "" {
+			// 解析token获取用户ID
+			claims, err := jwtConfig.ParseToken(token)
+			if err == nil {
+				// 获取当前用户信息
+				user, err := userService.GetUserByID(claims.UserID)
+				if err == nil {
+					if user.Name != "" {
+						userName = user.Name
+					} else {
+						userName = user.Username
+					}
+					userAvatar = user.Avatar
+				}
+			}
+		}
+		c.HTML(200, "index.html", gin.H{
+			"title":      "管理员后台 - 基层三基考试系统",
+			"userName":   userName,
+			"userAvatar": userAvatar,
+		})
+	})
+
+	// 管理员用户列表页面
+	router.GET("/admin/users", func(c *gin.Context) {
+		userName := ""
+		userAvatar := ""
+		// 从cookie中获取token
+		token, err := c.Cookie("token")
+		if err == nil && token != "" {
+			// 解析token获取用户ID
+			claims, err := jwtConfig.ParseToken(token)
+			if err == nil {
+				// 获取当前用户信息
+				user, err := userService.GetUserByID(claims.UserID)
+				if err == nil {
+					if user.Name != "" {
+						userName = user.Name
+					} else {
+						userName = user.Username
+					}
+					userAvatar = user.Avatar
+				}
+			}
+		}
+		// 获取用户列表数据
+		users := []models.User{}
+		// 模拟分页数据
+		currentPage := 1
+		totalPages := 1
+		pages := []int{1}
+		c.HTML(200, "admin_users.html", gin.H{
+			"title":       "用户管理 - 管理员后台",
+			"userName":    userName,
+			"userAvatar":  userAvatar,
+			"users":       users,
+			"currentPage": currentPage,
+			"totalPages":  totalPages,
+			"pages":       pages,
+		})
+	})
+
+	// 考试统计页面
+	router.GET("/stats", func(c *gin.Context) {
+		userName := ""
+		userAvatar := ""
+		// 从cookie中获取token
+		token, err := c.Cookie("token")
+		if err == nil && token != "" {
+			// 解析token获取用户ID
+			claims, err := jwtConfig.ParseToken(token)
+			if err == nil {
+				// 获取当前用户信息
+				user, err := userService.GetUserByID(claims.UserID)
+				if err == nil {
+					if user.Name != "" {
+						userName = user.Name
+					} else {
+						userName = user.Username
+					}
+					userAvatar = user.Avatar
+				}
+			}
+		}
+		// 获取考试统计数据
+		stats := gin.H{
+			"totalParticipants": 100,
+			"avgScore":          75.5,
+			"maxScore":          98,
+			"minScore":          45,
+			"passRate":          85,
+			"excellentRate":     25,
+		}
+		c.HTML(200, "stats.html", gin.H{
+			"title":      "考试统计 - 基层三基考试系统",
+			"userName":   userName,
+			"userAvatar": userAvatar,
+			"stats":      stats,
+		})
+	})
+
+	// 我的考试页面
+	router.GET("/exams", func(c *gin.Context) {
+		userName := ""
+		userAvatar := ""
+		// 从cookie中获取token
+		token, err := c.Cookie("token")
+		if err != nil || token == "" {
+			c.Redirect(http.StatusFound, "/login")
+			return
+		}
+
+		// 解析token获取用户ID
+		claims, err := jwtConfig.ParseToken(token)
+		if err != nil {
+			c.Redirect(http.StatusFound, "/login")
+			return
+		}
+
+		// 获取当前用户信息
+		user, err := userService.GetUserByID(claims.UserID)
+		if err != nil {
+			c.HTML(200, "exams.html", gin.H{
+				"title":         "我的考试 - 基层三基考试系统",
+				"userName":      "",
+				"userAvatar":    "",
+				"upcomingExams": []models.Exam{},
+				"pastExams":     []models.ExamRecord{},
+			})
+			return
+		}
+
+		if user.Name != "" {
+			userName = user.Name
+		} else {
+			userName = user.Username
+		}
+		userAvatar = user.Avatar
+
+		// 获取待参加考试 - 实际项目中，这里会调用examService获取即将开始的考试
+		// 现在获取所有已发布的考试
 		upcomingExams := []models.Exam{}
+		exams, _, err := examService.ListExams(1, 100)
+		if err == nil {
+			upcomingExams = exams
+		}
+
+		// 获取已参加考试
 		pastExams := []models.ExamRecord{}
+		records, _, err := examService.ListExamRecords(claims.UserID, 1, 100)
+		if err == nil {
+			pastExams = records
+		}
 
 		c.HTML(200, "exams.html", gin.H{
 			"title":         "我的考试 - 基层三基考试系统",
@@ -434,29 +632,117 @@ func SetupRouter(cfg *config.Config) *gin.Engine {
 
 	// 考试详情页面
 	router.GET("/exam/:id/details", func(c *gin.Context) {
+		userName := ""
+		userAvatar := ""
+		// 从cookie中获取token
+		token, err := c.Cookie("token")
+		if err == nil && token != "" {
+			// 解析token获取用户ID
+			claims, err := jwtConfig.ParseToken(token)
+			if err == nil {
+				// 获取当前用户信息
+				user, err := userService.GetUserByID(claims.UserID)
+				if err == nil {
+					if user.Name != "" {
+						userName = user.Name
+					} else {
+						userName = user.Username
+					}
+					userAvatar = user.Avatar
+				}
+			}
+		}
 		c.HTML(200, "index.html", gin.H{
-			"title": "考试详情 - 基层三基考试系统",
+			"title":      "考试详情 - 基层三基考试系统",
+			"userName":   userName,
+			"userAvatar": userAvatar,
 		})
 	})
 
 	// 开始考试页面
 	router.GET("/exam/:id/start", func(c *gin.Context) {
+		userName := ""
+		userAvatar := ""
+		// 从cookie中获取token
+		token, err := c.Cookie("token")
+		if err == nil && token != "" {
+			// 解析token获取用户ID
+			claims, err := jwtConfig.ParseToken(token)
+			if err == nil {
+				// 获取当前用户信息
+				user, err := userService.GetUserByID(claims.UserID)
+				if err == nil {
+					if user.Name != "" {
+						userName = user.Name
+					} else {
+						userName = user.Username
+					}
+					userAvatar = user.Avatar
+				}
+			}
+		}
 		c.HTML(200, "index.html", gin.H{
-			"title": "开始考试 - 基层三基考试系统",
+			"title":      "开始考试 - 基层三基考试系统",
+			"userName":   userName,
+			"userAvatar": userAvatar,
 		})
 	})
 
 	// 考试结果页面
 	router.GET("/record/:id", func(c *gin.Context) {
+		userName := ""
+		userAvatar := ""
+		// 从cookie中获取token
+		token, err := c.Cookie("token")
+		if err == nil && token != "" {
+			// 解析token获取用户ID
+			claims, err := jwtConfig.ParseToken(token)
+			if err == nil {
+				// 获取当前用户信息
+				user, err := userService.GetUserByID(claims.UserID)
+				if err == nil {
+					if user.Name != "" {
+						userName = user.Name
+					} else {
+						userName = user.Username
+					}
+					userAvatar = user.Avatar
+				}
+			}
+		}
 		c.HTML(200, "index.html", gin.H{
-			"title": "考试结果 - 基层三基考试系统",
+			"title":      "考试结果 - 基层三基考试系统",
+			"userName":   userName,
+			"userAvatar": userAvatar,
 		})
 	})
 
 	// 试卷查看页面
 	router.GET("/exam/:id/paper", func(c *gin.Context) {
+		userName := ""
+		userAvatar := ""
+		// 从cookie中获取token
+		token, err := c.Cookie("token")
+		if err == nil && token != "" {
+			// 解析token获取用户ID
+			claims, err := jwtConfig.ParseToken(token)
+			if err == nil {
+				// 获取当前用户信息
+				user, err := userService.GetUserByID(claims.UserID)
+				if err == nil {
+					if user.Name != "" {
+						userName = user.Name
+					} else {
+						userName = user.Username
+					}
+					userAvatar = user.Avatar
+				}
+			}
+		}
 		c.HTML(200, "index.html", gin.H{
-			"title": "查看试卷 - 基层三基考试系统",
+			"title":      "查看试卷 - 基层三基考试系统",
+			"userName":   userName,
+			"userAvatar": userAvatar,
 		})
 	})
 
